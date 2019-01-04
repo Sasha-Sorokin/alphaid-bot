@@ -35,7 +35,6 @@
         "no-unnecessary-type-assertion": true,
         "no-unnecessary-callback-wrapper": true,
         "no-unused-expression": [ true, "allow-fast-null-checks" ],
-        "no-unused-variable": [ true, {} ],
         "no-var-keyword": true,
         "no-var-requires": true,
         "object-curly-spacing": true,
