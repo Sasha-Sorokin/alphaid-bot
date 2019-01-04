@@ -148,6 +148,8 @@ const SCHEMA_CONFIG: InterfaceSchema<IBotConfig> = {
 	"ravenUrl": { type: "string", optional: true }
 };
 
+const NETWORK_ERRORS = ["ECONNRESET", "EAI_AGAIN", "ECONNREFUSED"];
+
 export class SnowballBot {
 	/**
 	 * Module loader
@@ -277,8 +279,25 @@ export class SnowballBot {
 		// Handle the messages
 		this._discordClient
 			.on("warn", (info: string) => this._log("warn", info))
-			.on("error", (err) => {
+			.on("error", (err: any) => {
 				this._log("err", "Error at the Discord client", err);
+
+				if (!(err instanceof Error)) {
+					if (err.error instanceof Error) {
+						err = err.error;
+					} else {
+						this._log("warn", "Non-error has been reported by the Discord client", err);
+						
+						return;
+					}
+
+					if (err.code != null && NETWORK_ERRORS.includes(err.code)) {
+						this._log("warn", `An network error (${err.code}) has occured with Discord client: ${err.message}`);
+
+						return;
+					}
+				}
+
 				this.captureException(err);
 			});
 
@@ -289,20 +308,27 @@ export class SnowballBot {
 			const status = this._discordClient.status;
 
 			if (typeof status !== "number" || status < 3) {
+				let str = "Not handling the disconnect event: ";
+				let level = "warn";
+
 				switch (status) {
 					case 2: {
-						this._log("info", "The reconnection in process. Not handling the disconnect event...");
+						str += "The reconnection in process.";
+						level = "info";
 					} break;
 					case 1: {
-						this._log("warn", "Currently connecting (which is unexpected status in this situation). Not handling the disconnect event...");
+						str += "Currently connecting (which is unexpected status in this situation).";
 					} break;
 					case 0: {
-						this._log("info", "\"READY\" status, the reconnect already happened. Not handling the disconnect event...");
+						str += "\"READY\" status, the reconnect already happened.";
+						level = "info";
 					} break;
 					default: {
-						this._log("warn", "Unexpected status detected, for safety reason. Not handling the disconnect event...");
+						str += "For safety reasons. Unexpected status detected.";
 					} break;
 				}
+
+				this._log(level, str);
 
 				return;
 			}
