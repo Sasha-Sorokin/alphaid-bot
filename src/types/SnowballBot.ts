@@ -117,7 +117,7 @@ declare global {
 	/**
 	 * Snowball bot instance
 	 */
-	const $snowball: SnowballBot;
+	const $snowball: BotInstance;
 }
 
 const SCHEMA_CONFIG: InterfaceSchema<IBotConfig> = {
@@ -150,7 +150,7 @@ const SCHEMA_CONFIG: InterfaceSchema<IBotConfig> = {
 
 const NETWORK_ERRORS = ["ECONNRESET", "EAI_AGAIN", "ECONNREFUSED"];
 
-export class SnowballBot {
+export class BotInstance {
 	/**
 	 * Module loader
 	 */
