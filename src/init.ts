@@ -251,7 +251,7 @@ async function initBot(log: logger.ILogFunction, config: IBotConfig, internalCon
 	await prepare(log);
 
 	log("info", "[Run] Initializing bot...");
-	const snowball = new SB.SnowballBot(config, internalConfig);
+	const snowball = new SB.BotInstance(config, internalConfig);
 
 	if (!config.ravenUrl) {
 		log("info", "[Sentry] Want beautiful reports for bot errors?");
