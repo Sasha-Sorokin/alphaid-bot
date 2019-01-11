@@ -280,8 +280,7 @@ export class BotInstance {
 		this._discordClient
 			.on("warn", (info: string) => this._log("warn", info))
 			.on("error", (err: any) => {
-				this._log("err", "Error at the Discord client", err);
-
+				
 				if (!(err instanceof Error)) {
 					if (err.error instanceof Error) {
 						err = err.error;
@@ -290,13 +289,15 @@ export class BotInstance {
 						
 						return;
 					}
-
+					
 					if (err.code != null && NETWORK_ERRORS.includes(err.code)) {
 						this._log("warn", `An network error (${err.code}) has occured with Discord client: ${err.message}`);
-
+						
 						return;
 					}
 				}
+
+				this._log("err", "Error at the Discord client", err);
 
 				this.captureException(err);
 			});
