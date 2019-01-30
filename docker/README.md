@@ -1,4 +1,4 @@
-# Snowball Bot Docker Images
+# Alphaid Bot Docker Images
 
 <img align="left" width="150" src="https://i.imgur.com/FDSiq6L.gif" alt="Docker Swarm animated picture"/>
 
@@ -18,52 +18,47 @@ Don't forget to share your feedback on [our Discord servers](/README.md#discord-
 >
 > Docker Toolbox for Windows is **not supported** (and will not be).
 > Use [Docker CE](https://docs.docker.com/install/) for this.
-> Note, that the bot may work weird on Windows.
+> The bot may work weird or buggy on Windows, because it is hosted inside of Hyper-V VM.
 >
 > Find you any issues with Docker images on Windows, you may report them —
 > read the [Contributing Guide here](/CONTRIBUTING.md) to get started.
 
 ```bash
 # Clone repository
-git clone https://github.com/snowball-dev-group/snowball-bot.git
-cd Snowball-Bot
+git clone https://github.com/Sasha-Sorokin/alphaid-bot.git
+cd alphaid-bot
 
 # Initializate all modules
 git submodule init
 git submodule update --recursive
 
-# Building without Gulp or linting, because code is currently contains some type-related errors
-# There errors don't affect bot at runtime and with only low probability may cause errors
-# Ignore the red text unless you understand what it says and that said is something important
-tsc
+# Build code using gulp default task
+gulp
 
-# Copy all required filesusing Gulp Task "necessary-copying"
-gulp necessary-copying
-
-# Editing the configuration
+# Edit the configuration
 # -------------------------
 
-# Go to build directory / configuration files
-cd out/config
+# IMPORTANT !!!
+# Example files in "out/config" directory are outdated, please look at interface in file linked below for the actual configuration example:
+# https://github.com/Sasha-Sorokin/alphaid-bot/blob/master/src/types/SnowballBot.ts#L9
 
-# Clone default configuration as production one
-cp configuration.example.json configuration.production.json
+# Place your "configuration.production.json" in "out/.data/alphaid/configs"
 
-# Edit using default editor
-# You can replace `editor` here with your favorite editor
-# Also with custom edit you probably can change list of files to just . (dot) to open workspace
-editor configuration.example.json configuration.production.json
+cd out
 
-# Leaving the build directory / configuration files
-cd ../..
+mkdir .data
+
+touch configuration.production.json
+
+editor configuration.production.json
+
+cd ..
 
 # End editing configuration
 # -------------------------
-
-
 ```
 
-Here, take a short break by pushing your files to the server.
+Done. Take a short break by copying your files to the server and installing docker there (shouldn't be so hard).
 
 Commands below are run on the `out` directory pushed to the server with Docker already installed.
 
@@ -72,18 +67,20 @@ Commands below are run on the `out` directory pushed to the server with Docker a
 docker-compose build
 
 # If required, may edit some docker configuration
-# Beware, this may be replaced next time you copy files to server
+# Remember that they can be overwritten next time you copy files to server
 
 # code docker-compose.yml
 
 # Finally, starting the bot! :tada:
-# If you want to see realtime logs, remove "-d" flag
+# If you want to see realtime logs (recommended), remove "-d" flag
 docker-compose up -d
 
 # Completely stop the bot
 docker-compose down
 ```
 
+After the stars some modules may require you to configure them. They may create exapmle configuration files for yourself within the `.data/alphaid/configs` directory, or you need to make one manually in the same directory following the module instructions.
+
 ---
 
-*Image at the top of this document is found on [Docker Swarm Week page](https://goto.docker.com/swarm-week.html), optimized using [ezgif.com](https://ezgif.com/) and uploaded to [Imgur](https://imgur.com/).*
+*Animated image at the top of this document is found on [Docker Swarm Week page](https://goto.docker.com/swarm-week.html), optimized using [ezgif.com](https://ezgif.com/) and uploaded to [Imgur](https://imgur.com/).*
