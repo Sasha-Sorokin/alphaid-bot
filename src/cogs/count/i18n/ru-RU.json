@@ -1,4 +1,0 @@
-{
-    "COUNT_TOPIC_DBERROR": "{emoji} Не удаётся сохранить значение в базе данных, попробуйте снова",
-    "COUNT_TOPIC_LATEST": "{emoji} Последнее число: {numbers}"
-}
