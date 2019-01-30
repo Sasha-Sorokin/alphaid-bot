@@ -1,4 +1,3 @@
-import { IModule } from "@sb-types/ModuleLoader/Interfaces";
 import { ErrorMessages } from "@sb-types/Consts";
 import { MessageReaction, User, Message, GuildMember } from "discord.js";
 import * as getLogger from "loggy";
@@ -7,6 +6,9 @@ import { INullableHashMap, IHashMap } from "@sb-types/Types";
 import { timeDiff } from "@utils/time";
 import * as text from "@utils/text";
 import { UserIdentify, generateLocalizedEmbed, ExtensionAssignUnhandleFunction, extendAndAssign } from "@utils/ez-i18n";
+import { IModule } from "@sb-types/ModuleLoader/Interfaces.new";
+import { ModulePrivateInterface } from "@sb-types/ModuleLoader/PrivateInterface";
+import { instant, saveInstant } from "@utils/config";
 
 export interface IStarControlSettings {
 	/**
@@ -58,73 +60,37 @@ interface IMessageDisqualification {
 
 type ContentDisqualifyCondition = ["equal" | "starts" | "ends" | "includes", string];
 
-const SIGNATURE_BASE = "snowball.partners.dnserv.stars_control";
-
 const DAY_IN_MINUTES = 1440;
 const STAR_REACTION = "⭐";
 
 const REGEX_CACHE: INullableHashMap<RegExp> = Object.create(null);
 
-export class StarsControl implements IModule {
-	private readonly _signature: string;
-
-	public get signature() {
-		return this._signature;
-	}
-
-	private static readonly _log = getLogger("dnSERV Reborn: StarControl");
+export class StarsControl implements IModule<StarsControl> {
+	private static readonly _log = getLogger("dnSERV: StarsControl");
 
 	private _handler?: ReactionHandler;
 	private _i18nUnhandle?: ExtensionAssignUnhandleFunction;
 
-	private readonly _settings: IStarControlSettings;
+	private _settings: IStarControlSettings;
 	private _compiledDisqualificationProcess?: AnyOfResult<IAddedReaction>;
 
-	constructor(settings?: IStarControlSettings) {
-		if (!settings) {
-			throw new Error("No settings provided");
+	public async init(i: ModulePrivateInterface<StarsControl>) {
+		if (i.baseCheck(this) && !i.isPendingInitialization()) {
+			throw new Error(ErrorMessages.NOT_PENDING_INITIALIZATION);
 		}
 
-		if (!settings.guildId) {
-			throw new Error("No server ID provided");
-		}
-
-		this._signature = `${SIGNATURE_BASE}~${settings.guildId}`;
-
-		this._settings = {
-			starEmoji: STAR_REACTION,
-			selfStarring: true,
-			blockedStarrers: [
-				// Bots should not star messages
-				"$bots"
-			],
-			badStars: [
-				// Messages that sent by bots
-				{ authors: ["$bots", "$hooks"] },
-				// Messages that are older than one day
-				{ aged: DAY_IN_MINUTES }
-			],
-			...settings
-		};
-	}
-
-	public async init() {
-		if (!$modLoader.isPendingInitialization(this.signature)) {
-			throw new Error(
-				ErrorMessages.NOT_PENDING_INITIALIZATION
-			);
-		}
-
-		const fix = $modLoader.findKeeper("snowball.fixes.reactions");
+		const fix = i.getDependency("reactions-fixer");
 
 		if (!fix) {
 			StarsControl._log(
 				"warn",
-				"We highly recommend enabling the fix so the bot can listen to reaction adding on old messages"
+				"`reaction-fixer` module is recommended to install"
 			);
 		}
 
-		await this._initLocalization();
+		await this._initConfig(i);
+
+		await this._initLocalization(i);
 
 		const settings = this._settings;
 
@@ -164,11 +130,41 @@ export class StarsControl implements IModule {
 		return;
 	}
 
-	private async _initLocalization() {
-		this._i18nUnhandle = await extendAndAssign(
-			[__dirname, "i18n"],
-			this.signature
-		);
+	private async _initConfig(i: ModulePrivateInterface<StarsControl>) {
+		const cfg = (await instant<IStarControlSettings>(i))[1];
+
+		if (!cfg) {
+			const path = await saveInstant<IStarControlSettings>(i, {
+				guildId: "SERVER ID"
+			});
+
+			StarsControl._log("err", `No configuration found. An example config created at "${path}", please replace needed values before starting the bot again`);
+
+			throw new Error("No configuration file found. An example config created");
+		}
+
+		if (!cfg.guildId) throw new Error("Guild ID must be provided in config");
+
+		this._settings = {
+			starEmoji: STAR_REACTION,
+			selfStarring: true,
+			blockedStarrers: [
+				// Bots should not star messages
+				"$bots"
+			],
+			badStars: [
+				// Messages that sent by bots
+				{ authors: ["$bots", "$hooks"] },
+				// Messages that are older than one day
+				{ aged: DAY_IN_MINUTES }
+			],
+			// Dirty hacks, but it works
+			...(<IStarControlSettings> cfg)
+		};
+	}
+
+	private async _initLocalization(i: ModulePrivateInterface<StarsControl>) {
+		this._i18nUnhandle = await extendAndAssign([__dirname, "i18n"], i);
 	}
 
 	private async _handleReactionAdding(reaction: MessageReaction, user: User) {
@@ -470,8 +466,8 @@ export class StarsControl implements IModule {
 
 	// #endregion
 
-	public async unload() {
-		if (!$modLoader.isPendingUnload(this.signature)) {
+	public async unload(i: ModulePrivateInterface<StarsControl>) {
+		if (i.baseCheck(this) && !i.isPendingUnload()) {
 			throw new Error(
 				ErrorMessages.NOT_PENDING_UNLOAD
 			);

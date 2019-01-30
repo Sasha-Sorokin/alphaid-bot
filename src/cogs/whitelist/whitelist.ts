@@ -1,4 +1,4 @@
-import { IModule } from "@sb-types/ModuleLoader/Interfaces";
+import { IModule } from "@sb-types/ModuleLoader/Interfaces.new";
 import { Plugin } from "../plugin";
 import { Message, Guild, TextChannel, GuildMember, User } from "discord.js";
 import { command } from "@utils/help";
@@ -13,6 +13,8 @@ import { createConfirmationMessage } from "@utils/interactive";
 import { DateTime } from "luxon";
 import { ErrorMessages } from "@sb-types/Consts";
 import { WhitelistUserPreferences } from "@cogs/whitelist/consts";
+import { ModulePrivateInterface } from "@sb-types/ModuleLoader/PrivateInterface";
+import { instant, saveInstant } from "@utils/config";
 
 const POSSIBLE_CHAT_ROOMS = ["admins", "admin-channel", "admin_channel", "admins-chat", "admins_chat", "admin", "mod-channel", "mods-channel", "mods", "mods-chat", "mod_chat", "chat", "general"];
 
@@ -40,7 +42,7 @@ function isServerAdmin(msg: Message) {
 		description: "loc:WHITELIST_META_WHITELIST_ARG1_DESC"
 	}
 }, isBotAdmin)
-export class Whitelist extends Plugin implements IModule {
+export class Whitelist extends Plugin implements IModule<Whitelist> {
 	public get signature() {
 		return "snowball.core_features.whitelist";
 	}
@@ -48,79 +50,23 @@ export class Whitelist extends Plugin implements IModule {
 	private readonly _log = getLogger("Whitelist");
 
 	private readonly _alwaysWhitelisted: string[] = [];
-	private readonly _minMembersRequired: number = 50;
-	private readonly _maxMembersAllowed: number = 25000;
-	private readonly _botsThreshold: number = 70;
-	private readonly _defaultMode = WhitelistModes.NoBotFarms
+	private _minMembersRequired: number = 50;
+	private _maxMembersAllowed: number = 25000;
+	private _botsThreshold: number = 70;
+	private _defaultMode = WhitelistModes.NoBotFarms
 		| WhitelistModes.NoLowMembers
 		| WhitelistModes.NoMaxMembers
 		| WhitelistModes.TrialAllowed
 		| WhitelistModes.Whitelist;
-	private readonly _signupUrl: string = "no_link";
-	private readonly _trialTime: number = 86400000;
+	private _signupUrl: string = "no_link";
+	private _trialTime: number = 86400000;
 	private _currentMode: IParsedMode | undefined = undefined;
 
-	constructor(options: any) {
+	constructor() {
 		super({
 			"message": (msg: Message) => this._onMessage(msg),
 			"guildCreate": (guild: Guild) => this._onJoinedGuild(guild)
 		});
-
-		if (options) {
-			{
-				const alwaysWhitelisted = options.always_whitelisted;
-				if (alwaysWhitelisted && alwaysWhitelisted instanceof Array) {
-					for (const g of <string[]> alwaysWhitelisted) {
-						this._alwaysWhitelisted.push(g);
-					}
-				}
-			}
-			{
-				const minMembers = options.min_members;
-				if (minMembers !== undefined && typeof minMembers === "number") {
-					this._minMembersRequired = Math.max(0, minMembers);
-				}
-			}
-			{
-				const maxMembers = options.max_members;
-				if (maxMembers !== undefined && typeof maxMembers === "number") {
-					this._maxMembersAllowed = Math.max(0, maxMembers);
-				}
-			}
-			{
-				const botsThreshold = options.bots_threshold;
-				if (botsThreshold !== undefined && typeof botsThreshold === "number") {
-					this._botsThreshold = Math.max(0, Math.min(100, botsThreshold));
-				}
-			}
-			{
-				const defaultMode = options.default_mode;
-				if (defaultMode !== undefined && typeof defaultMode === "number") {
-					this._defaultMode = defaultMode;
-				}
-			}
-			{
-				const url = options.signup_url;
-				if (url !== undefined && typeof url === "string") {
-					this._signupUrl = url;
-				} else { throw new Error("No sign up link provided"); }
-			}
-			{
-				const trialTime = options.trial_time;
-				if (trialTime !== undefined && typeof trialTime === "number") {
-					this._trialTime = options.trial_time;
-				}
-			}
-		} else { throw new Error("Setup required"); }
-
-		this._log("info", "Whitelist module is here to protect your mod");
-		this._log("info", " Required members to stay:", this._minMembersRequired, "-", this._maxMembersAllowed);
-		this._log("info", " Always whitelisted servers:");
-
-		for (const whitelistedId of this._alwaysWhitelisted) {
-			const found = !!$discordBot.guilds.get(whitelistedId);
-			this._log(found ? "ok" : "warn", "  -", whitelistedId, found ? "(found)" : "(not found)");
-		}
 	}
 
 	private async _fetchCurrentMode() {
@@ -197,9 +143,80 @@ export class Whitelist extends Plugin implements IModule {
 
 	private _checkInterval: NodeJS.Timer;
 
-	public async init() {
-		if (!$modLoader.isPendingInitialization(this.signature)) {
+	public async init(i: ModulePrivateInterface<Whitelist>) {
+		if (i.baseCheck(this) && !i.isPendingInitialization()) {
 			throw new Error("Module is not pending initialization");
+		}
+
+		const options = (await instant<any>(i))[1];
+
+		if (!options) {
+			const path = await saveInstant<any>(i, {
+				always_whitelisted: ["SERVER ID", "SECOND SERVER ID"],
+				min_members: 10,
+				max_members: 25000,
+				bots_threshold: 10,
+				signup_url: "https://example.com/",
+				trial_time: 86400000
+			});
+
+			this._log("err", `No configuration found. An example config created at "${path}", please replace needed values before starting the bot again`);
+
+			throw new Error("No configuration file found. An example config created");
+		}
+		
+		{
+			const alwaysWhitelisted = options.always_whitelisted;
+			if (alwaysWhitelisted && alwaysWhitelisted instanceof Array) {
+				for (const g of <string[]> alwaysWhitelisted) {
+					this._alwaysWhitelisted.push(g);
+				}
+			}
+		}
+		{
+			const minMembers = options.min_members;
+			if (minMembers !== undefined && typeof minMembers === "number") {
+				this._minMembersRequired = Math.max(0, minMembers);
+			}
+		}
+		{
+			const maxMembers = options.max_members;
+			if (maxMembers !== undefined && typeof maxMembers === "number") {
+				this._maxMembersAllowed = Math.max(0, maxMembers);
+			}
+		}
+		{
+			const botsThreshold = options.bots_threshold;
+			if (botsThreshold !== undefined && typeof botsThreshold === "number") {
+				this._botsThreshold = Math.max(0, Math.min(100, botsThreshold));
+			}
+		}
+		{
+			const defaultMode = options.default_mode;
+			if (defaultMode !== undefined && typeof defaultMode === "number") {
+				this._defaultMode = defaultMode;
+			}
+		}
+		{
+			const url = options.signup_url;
+			if (url !== undefined && typeof url === "string") {
+				this._signupUrl = url;
+			} else { throw new Error("No sign up link provided"); }
+		}
+		{
+			const trialTime = options.trial_time;
+			if (trialTime !== undefined && typeof trialTime === "number") {
+				this._trialTime = options.trial_time;
+			}
+		}
+
+		this._log("info", "Whitelist module is here to protect your mod");
+		this._log("info", " Required members to stay:", this._minMembersRequired, "-", this._maxMembersAllowed);
+		this._log("info", " Always whitelisted servers:");
+
+		for (const whitelistedId of this._alwaysWhitelisted) {
+			const found = !!$discordBot.guilds.get(whitelistedId);
+			this._log(found ? "ok" : "warn", "  -", whitelistedId, found ? "(found)" : "(not found)");
 		}
 
 		this._currentMode = await this._fetchCurrentMode();
@@ -625,8 +642,8 @@ export class Whitelist extends Plugin implements IModule {
 		return modeInt;
 	}
 
-	public async unload() {
-		if (!$modLoader.isPendingUnload(this.signature)) {
+	public async unload(i: ModulePrivateInterface<Whitelist>) {
+		if (i.baseCheck(this) && !i.isPendingUnload()) {
 			throw new Error(ErrorMessages.NOT_PENDING_UNLOAD);
 		}
 
@@ -639,8 +656,6 @@ export class Whitelist extends Plugin implements IModule {
 		return true;
 	}
 }
-
-export default Whitelist;
 
 export enum WHITELIST_STATE {
 	/**
@@ -702,3 +717,5 @@ interface IWhitelistState {
 	state: WHITELIST_STATE;
 	until: null | number;
 }
+
+export default Whitelist;

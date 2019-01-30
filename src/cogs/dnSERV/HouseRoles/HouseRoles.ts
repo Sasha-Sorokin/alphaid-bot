@@ -1,12 +1,15 @@
-import MessagesFlows, { IPublicFlowCommand, IMessageFlowContext } from "@cogs/cores/messagesFlows";
+import * as getLogger from "loggy";
+import { IModule } from "@sb-types/ModuleLoader/Interfaces.new";
 import { ErrorMessages } from "@sb-types/Consts";
-import { extendAndAssign, generateLocalizedEmbed, localizeForGuild, localizeForUser } from "@utils/ez-i18n";
 import { default as fetch } from "node-fetch";
 import { GuildMember, Message } from "discord.js";
 import { resolveGuildMember, EmbedType, getMessageMember } from "@utils/utils";
-import * as getLogger from "loggy";
+import { MessagesFlows, IPublicFlowCommand, IMessageFlowContext } from "@cogs/cores/messagesFlows/messagesFlows";
+import { extendAndAssign, generateLocalizedEmbed, localizeForGuild, localizeForUser } from "@utils/ez-i18n";
+import { ModulePrivateInterface } from "@sb-types/ModuleLoader/PrivateInterface";
+import * as config from "@utils/config";
 
-type Options = Partial<{
+interface IOptions {
 	/**
 	 * Guild ID for which this plugin is initializing
 	 */
@@ -22,8 +25,8 @@ type Options = Partial<{
 	/**
 	 * Roles for houses
 	 */
-	roles: Partial<Roles>
-}>;
+	roles: Partial<Roles>;
+}
 
 type Roles = {
 	balance: string;
@@ -31,65 +34,54 @@ type Roles = {
 	brilliance: string;
 };
 
-const SIGNATURE_BASE = "snowball.partners.dnserv.house_roles";
+export class HouseRoles implements IModule<HouseRoles> {
+	private static readonly _log = getLogger("dnSERV: HouseRole");
 
-export class HouseRoles {
-	private readonly _signature: string;
-
-	public get signature() {
-		return this._signature;
-	}
-
-	private static readonly _log = getLogger("dnSERV Reborn - HouseRole");
-
-	private readonly _guildId: string;
-	private readonly _userToken: string;
-	private readonly _houseRoles: Roles;
+	private _guildId: string;
+	private _userToken: string;
+	private _houseRoles: Roles;
 
 	private _unloaded = false;
 	private _flowHandler?: IPublicFlowCommand;
 	private _i18nUnhandle: () => string[];
 
-	constructor(opts?: Options) {
-		if (!opts) {
-			throw new Error("No options set");
-		}
-
-		const { roles, token, guildId } = opts;
-
-		if (!guildId) {
-			throw new Error("No guild ID specified");
-		}
-
-		if (!roles) {
-			throw new Error("No house roles specified");
-		} else {
-			for (let i = 0, l = HOUSE_ROLES.length; i < l; i++) {
-				const role = HOUSE_ROLES[i];
-
-				if (!roles[role]) {
-					throw new Error(`No "${role}" role specified`);
-				}
-			}
-		}
-
-		if (!token) {
-			throw new Error("No user token to check house specified");
-		}
-
-		this._houseRoles = <any> roles;
-		this._userToken = token;
-		this._guildId = guildId;
-
-		this._signature = `${SIGNATURE_BASE}~${guildId}`;
-	}
-
-	public async init() {
-		if (!$modLoader.isPendingInitialization(this.signature)) {
+	public async init(i: ModulePrivateInterface<HouseRoles>) {
+		if (i.baseCheck(this) && !i.isPendingInitialization()) {
 			throw new Error(ErrorMessages.NOT_PENDING_INITIALIZATION);
 		}
 
-		const guildId = this._guildId;
+		// Retreiving the configuration
+		const cfg = (await config.instant<IOptions>(i))[1];
+
+		if (!cfg) {
+			// If config doesn't exist, then making an example one
+
+			const cfgPath = await config.saveInstant<IOptions>(i, {
+				guildId: "SERVER ID",
+				roles: {
+					balance: "ID FOR BALANCE ROLE",
+					bravery: "ID FOR BRAVERY ROLE",
+					brilliance: "ID FOR BRILLIANCE ROLE"
+				},
+				token: "PUT THE DISCORD ACCOUNT TOKEN HERE"
+			});
+
+			HouseRoles._log("err", `No configuration found. An example config created at ${cfgPath}, please replace needed values before starting bot again`);
+
+			throw new Error("No configuration file found. An example config created");
+		}
+
+		// Checking the config
+		const { token, guildId } = cfg;
+
+		if (!token) {
+			throw new Error("No token provided. User token required to fetch person's houses");
+		}
+
+		// Check if the guild provided and valid
+		if (!guildId) throw new Error(`No guild ID provided`);
+
+		this._guildId = guildId;
 
 		const guild = $discordBot.guilds.get(guildId);
 
@@ -98,31 +90,47 @@ export class HouseRoles {
 				HouseRoles._log(
 					"warn",
 					`Guild ${guildId} is not present on this shard`
-				);
-
-				return;
+					);
+					
+					return;
 			}
-
-			throw new Error(`Guild ${guildId} not found`);
+			
+			throw new Error(`Guild "${guildId}" not found`);
 		}
 
-		this._i18nUnhandle = await extendAndAssign(
-			[__dirname, "i18n"],
-			this.signature
-		);
+		// Guild found, see if the user in the guild too
+		await HouseRoles._checkToken(token, guildId);
+		
+		this._userToken = token;
 
-		const flowsKeeper = $modLoader.findKeeper<MessagesFlows>(
-			"snowball.core_features.messageflows"
-		);
+		// Now checking the roles
+		const { roles } = cfg;
 
-		if (!flowsKeeper) {
-			throw new Error(
-				"Cannot find MessagesFlows Keeper"
-			);
+		if (!roles) throw new Error("No roles provided in config");
+
+		for (let i = 0, l = HOUSE_ROLES.length; i < l; i++) {
+			const houseName = HOUSE_ROLES[i];
+			
+			const houseRole = roles[houseName];
+			
+			if (!houseRole) throw new Error(`No role set for "${houseName}"`);
+			
+			if (!guild.roles.has(houseRole)) {
+				throw new Error(`Role "${houseRole}" cannot be found on "${guildId}"`);
+			}
 		}
 
-		flowsKeeper.onInit((flows) => {
-			const handler = flows.watchForCommands(
+		this._houseRoles = <Roles> roles;
+
+		// Basic stuff of registering locales, commands yada yada
+		this._i18nUnhandle = await extendAndAssign([__dirname, "i18n"], i);
+
+		const mf = i.getDependency<MessagesFlows>("messages-flows");
+
+		if (!mf) throw new Error("Cannot find MessagesFlows Keeper");
+
+		mf.onInit((base) => {
+			const handler = base.watchForCommands(
 				(ctx) => this._onMessage(ctx),
 				"houserole"
 			);
@@ -204,7 +212,7 @@ export class HouseRoles {
 		const { message: msg } = ctx;
 
 		const sender = await getMessageMember(msg);
-		
+
 		if (!sender) { return; }
 
 		let assignResult: AssignResult;
@@ -310,7 +318,7 @@ export class HouseRoles {
 		const { message: msg } = ctx;
 
 		const sender = await getMessageMember(msg);
-		
+
 		if (!sender) { return; }
 
 		const { parsed } = ctx;
@@ -470,7 +478,7 @@ export class HouseRoles {
 								caller: "managed"
 							}
 						}
-					) : 
+					) :
 					generateLocalizedEmbed(
 						EmbedType.OK,
 						sender, {
@@ -560,7 +568,7 @@ export class HouseRoles {
 	// FIXME: remove useless `changes` and array with it
 	/**
 	 * Assigns House Roles to the member
-	 * 
+	 *
 	 * @returns Array of two elements: 0 — if there were any changes?
 	 * 1 — current houses of the member, `null` if none
 	 */
@@ -571,7 +579,7 @@ export class HouseRoles {
 
 		const mRoles = this._memberHavesRoles(member);
 
-		// Fetch his roles
+		// Fetch their houses
 
 		const mHouses = await HouseRoles._checkHouse(
 			member.id, this._userToken
@@ -625,7 +633,7 @@ export class HouseRoles {
 
 	/**
 	 * Removed House Roles from the member
-	 * 
+	 *
 	 * @returns Array of Houses whose roles were deleted
 	 */
 	private async _deassign(member: GuildMember): Promise<DeassignResult> {
@@ -661,7 +669,7 @@ export class HouseRoles {
 		const houseRoles = this._houseRoles;
 
 		for (const role in houseRoles) {
-			if (member.roles.has(houseRoles[role])) {
+			if (member.roles.has(houseRoles[<keyof(Roles)> role])) {
 				set.push(<House> role);
 			}
 		}
@@ -670,6 +678,34 @@ export class HouseRoles {
 	}
 
 	// #endregion
+
+	private static async _checkToken(token: string, guildId: string) {
+		const guilds = await fetch(
+			`https://discordapp.com/api/v6/users/@me/guilds`, {
+				headers: {
+					"Authorization": token
+				}
+			}
+		).then(
+			response => {
+				if (response.status !== 200) {
+					return Promise.reject(
+						new GuildsFetchError()
+					);
+				}
+
+				return response.json();
+			}
+		);
+
+		for (let i = 0, l = guilds.length; i < l; i++) {
+			const guild = guilds[i];
+		
+			if (guild.id === guildId) return true;
+		}
+
+		throw new Error(`Cannot find guild "${guildId}" using the user account`);
+	}
 
 	private static async _checkHouse(userId: string, token: string) {
 		// https://discordapp.com/api/v6/users/${userId}/profile
@@ -711,18 +747,14 @@ export class HouseRoles {
 
 	// #endregion
 
-	public unload() {
-		if (!$modLoader.isPendingUnload(this.signature)) {
+	public unload(i: ModulePrivateInterface<HouseRoles>) {
+		if (i.baseCheck(this) && !i.isPendingUnload()) {
 			throw new Error(ErrorMessages.NOT_PENDING_UNLOAD);
 		}
 
-		if (this._flowHandler) {
-			this._flowHandler.unhandle();
-		}
+		if (this._flowHandler) this._flowHandler.unhandle();
 
-		if (this._i18nUnhandle) {
-			this._i18nUnhandle();
-		}
+		if (this._i18nUnhandle) this._i18nUnhandle();
 
 		this._unloaded = true;
 
@@ -756,5 +788,6 @@ type DeassignResult = House[] | null;
 type AssignResult = [boolean, House[] | null];
 
 class HousesFetchError extends Error { }
+class GuildsFetchError extends Error { }
 
 export default HouseRoles;

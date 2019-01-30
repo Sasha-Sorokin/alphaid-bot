@@ -1,9 +1,12 @@
-import { IModule } from "@sb-types/ModuleLoader/Interfaces";
 import * as getLogger from "loggy";
-import { Guild, VoiceChannel } from "discord.js";
-import { toGuildLocaleString, extendAndAssign, ExtensionAssignUnhandleFunction } from "@utils/ez-i18n";
+import * as config from "@utils/config";
+import { isEmpty } from "@utils/extensions";
+import { IModule } from "@sb-types/ModuleLoader/Interfaces.new";
 import { DateTime } from "luxon";
 import { ErrorMessages } from "@sb-types/Consts";
+import { Guild, VoiceChannel } from "discord.js";
+import { ModulePrivateInterface } from "@sb-types/ModuleLoader/PrivateInterface";
+import { toGuildLocaleString, extendAndAssign, ExtensionAssignUnhandleFunction } from "@utils/ez-i18n";
 
 export interface IStatsChannelsSettings {
 	guildId: string;
@@ -17,22 +20,20 @@ type StatsChannelsProto<T> = {
 	time?: T;
 };
 
+type ResolvingData = {
+	guild: Guild;
+	resolvedChannels: ResolvedChannels
+};
+
 const CHANNEL_TYPES: Array<keyof StatsChannelsProto<any>> = ["members", "time"];
 
-const SIGNATURE_BASE = "snowball.partners.dnserv.stats_channels";
+const ONE_MINUTE = 60000; // ms
 
-const ONE_SECOND = 60000; // ms
+// FIXME: use ez-i18n
 const MEMBERS_STR = "{members, plural, one {# участник} few {# участника} other {# участников}}";
 
-export class StatsChannels implements IModule {
-	private static readonly _log = getLogger("dnSERV Reborn: StatsChannels");
-
-	private readonly _signature: string;
-	private readonly _settings: IStatsChannelsSettings;
-
-	public get signature() {
-		return this._signature;
-	}
+export class StatsChannels implements IModule<StatsChannels> {
+	private static readonly _log = getLogger("dnSERV: StatsChannels");
 
 	private _i18nUnhandle?: ExtensionAssignUnhandleFunction;
 	private _managedGuild: Guild;
@@ -40,89 +41,106 @@ export class StatsChannels implements IModule {
 	private _scheduledIntervalInit?: NodeJS.Timer;
 	private _updateInterval?: NodeJS.Timer;
 
-	constructor(settings: IStatsChannelsSettings) {
-		if (!settings) {
-			throw new Error("No settings specified");
+	public async init(i: ModulePrivateInterface<this>) {
+		if (i.baseCheck(this) && !i.isPendingInitialization()) {
+			throw new Error(ErrorMessages.NOT_PENDING_INITIALIZATION);
 		}
 
-		const { guildId, channels } = settings;
+		const settings = await this._initConfig(i);
 
-		if (!guildId) {
-			throw new Error("No server ID specified in settings");
-		} else if (!channels) {
-			throw new Error("No stats channels specified");
-		}
+		const resolvingData = StatsChannels._resolveData(settings);
 
-		this._signature = `${SIGNATURE_BASE}~${guildId}`;
+		if (!resolvingData) return;
 
-		this._settings = settings;
-	}
+		this._managedGuild = resolvingData.guild;
+		this._resolvedChannels = resolvingData.resolvedChannels;
 
-	public async init() {
-		if (!$modLoader.isPendingInitialization(this.signature)) {
-			throw new Error(
-				ErrorMessages.NOT_PENDING_INITIALIZATION
-			);
-		}
-
-		await this._initLocalization();
-
-		const settings = this._settings;
-
-		const guild = $discordBot.guilds.get(
-			settings.guildId
-		);
-
-		if (!guild) {
-			if ($botConfig.sharded) {
-				StatsChannels._log("warn", "No guild for this plugin found");
-
-				return;
-			}
-
-			throw new Error("Server not found");
-		}
-
-		const { channels } = settings;
-
-		const resolvedChannels: ResolvedChannels = Object.create(null);
-
-		for (let i = 0, l = CHANNEL_TYPES.length; i < l; i++) {
-			const type = CHANNEL_TYPES[i];
-
-			const id = channels[type];
-
-			if (!id) {
-				continue;
-			}
-
-			const channel = guild.channels.get(id);
-
-			if (!channel) {
-				throw new Error(`Cannot find channel with ID "${id}" for "${type}"`);
-			}
-
-			if (!(channel instanceof VoiceChannel)) {
-				throw new Error(`Channel with ID "${id}" has invalid type. Channel must be voice-type`);
-			}
-
-			resolvedChannels[type] = channel;
-		}
-
-		this._managedGuild = guild;
-		this._resolvedChannels = resolvedChannels;
+		await this._initLocalization(i);
 
 		this._scheduledIntervalInit = setTimeout(
 			() => this._initInterval(),
-			StatsChannels._msUntilNextSecond()
+			StatsChannels._msUntilNextMinute()
 		);
 	}
 
-	private async _initLocalization() {
-		this._i18nUnhandle = await extendAndAssign(
-			[__dirname, "i18n"],
-			this.signature
-		);
+	private async _initConfig(i: ModulePrivateInterface<StatsChannels>) {
+		const settings = (await config.instant<IStatsChannelsSettings>(i))[1];
+
+		if (!settings) {
+			const path = await config.saveInstant<IStatsChannelsSettings>(i, {
+				guildId: "SERVER ID",
+				channels: {
+					members: "LOCKED VOICE CHAT ID"
+				}
+			});
+
+			StatsChannels._log("err", `No configuration found. An example config created at "${path}", please replace needed values before starting the bot again`);
+
+			throw new Error("No configuration file found. An example config created");
+		}
+
+		if (!settings.guildId) throw new Error("Guild ID must be provided in the config");
+
+		if (!settings.channels) throw new Error("Channel configuration must be provided in the config");
+
+		return <IStatsChannelsSettings> settings;
+	}
+
+	private static _resolveData(settings: IStatsChannelsSettings) : ResolvingData | undefined {
+		if (!isEmpty(settings.channels)) throw new Error("Channel configuration must not be empty");
+
+		const guild = $discordBot.guilds.get(settings.guildId);
+
+		if (!guild) {
+			if ($botConfig.sharded) return;
+
+			throw new Error(`Cannot find guild "${settings.guildId}"`);
+		}
+
+		const loggedIDs: string[] = [];
+
+		const resolvingData: ResolvingData = {
+			resolvedChannels: Object.create(null),
+			guild
+		};
+
+		for (let i = 0, l = CHANNEL_TYPES.length; i < l; i++) {
+			const channelRole = CHANNEL_TYPES[i];
+
+			const channelId = settings.channels[channelRole];
+
+			if (!channelId) continue;
+
+			if (loggedIDs.includes(channelId)) {
+				throw new Error(`Channel "${channelId}" has already taken the other role`);
+			}
+
+			const channel = guild.channels.get(channelId);
+
+			if (!channel) throw new Error(`Channel "${channelId}" doesn't exist`);
+		
+			if (!(channel instanceof VoiceChannel)) {
+				throw new Error(`Channel "${channelId}" (${channelRole}) must be voice channel`);
+			}
+
+			resolvingData.resolvedChannels[channelRole] = channel;
+
+			const permissions = channel.permissionsFor(guild.me);
+
+			if (!permissions) throw new Error(`Unable to determinate permissions for channel "${channelId}"`);
+
+			if (!permissions.has("MANAGE_CHANNELS")) {
+				StatsChannels._log("warn", `Bot will not be able to manage channel "${channelId}". Please check permissions!`);
+			}
+
+			loggedIDs.push(channelId);
+		}
+
+		return resolvingData;
+	}
+
+	private async _initLocalization(i: ModulePrivateInterface<StatsChannels>) {
+		this._i18nUnhandle = await extendAndAssign([__dirname, "i18n"], i);
 	}
 
 	private async _initInterval() {
@@ -130,9 +148,11 @@ export class StatsChannels implements IModule {
 			clearInterval(this._updateInterval);
 		}
 
+		await this._updateChannels();
+
 		this._updateInterval = setInterval(
 			() => this._updateChannels(),
-			ONE_SECOND
+			ONE_MINUTE
 		);
 	}
 
@@ -213,18 +233,18 @@ export class StatsChannels implements IModule {
 		return false;
 	}
 
-	private static _msUntilNextSecond() {
+	private static _msUntilNextMinute() {
 		const d = new Date();
 
 		const currentMilliseconds =
 			(d.getSeconds() * 1000)
 			+ d.getMilliseconds();
 
-		return ONE_SECOND - currentMilliseconds;
+		return ONE_MINUTE - currentMilliseconds;
 	}
 
-	public async unload() {
-		if (!$modLoader.isPendingUnload(this._signature)) {
+	public async unload(i: ModulePrivateInterface<StatsChannels>) {
+		if (i.baseCheck(this) && !i.isPendingUnload()) {
 			throw new Error(
 				ErrorMessages.NOT_PENDING_UNLOAD
 			);

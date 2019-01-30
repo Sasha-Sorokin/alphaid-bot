@@ -1,0 +1,5 @@
+name: messages-flows
+version: 0.9.0
+dependencies:
+  prefixall: ^1.0.3
+main: ./messagesFlows
