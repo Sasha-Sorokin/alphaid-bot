@@ -7,7 +7,7 @@
         "brace-style": [ true, "1tbs", { "allowSingleLine": true } ],
         "class-name": true,
         "comment-format": [ true, "check-space" ],
-        "curly": true,
+        "curly": [ true, "ignore-same-line" ],
         "deprecation": true,
         "handle-callback-err": true,
         "indent": true,
