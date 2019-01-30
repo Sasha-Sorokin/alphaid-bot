@@ -28,7 +28,7 @@ services:
     build: .
     restart: on-failure
     volumes:
-      - .data/snowball/configs:/opt/app/config
+      - .data/alphaid/configs:/opt/app/config
     environment:
       - NODE_ENV=production
       - REDIS_HOST=sdg_sb_redis
