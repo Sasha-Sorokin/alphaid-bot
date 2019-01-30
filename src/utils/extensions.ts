@@ -113,3 +113,28 @@ export function removeFromArray<T>(arr: T[], element: T) : T | undefined {
 
 	return arr.splice(index, 1)[0];
 }
+
+/**
+ * Checks whether given element is empty or not
+ * @param element Element to check
+ * @throws Throws an error for weak collections
+ */
+export function isEmpty(element: any | any[]) {
+	if (typeof element !== "object") return true;
+
+	if (Array.isArray(element)) {
+		return element.length !== 0;
+	} else if (element instanceof Map || element instanceof Set) {
+		return element.size !== 0;
+	} else if (element instanceof WeakMap || element instanceof WeakSet) {
+		throw new Error(`Cannot check whether weak collection is empty or not`);
+	}
+
+	for (const key in element) {
+		if (Object.prototype.hasOwnProperty.call(element, key)) {
+			return true;
+		}
+	}
+
+	return false;
+}
