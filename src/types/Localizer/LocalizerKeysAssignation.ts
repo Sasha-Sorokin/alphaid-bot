@@ -1,6 +1,7 @@
 import * as Types from "@sb-types/Types";
 import * as logger from "loggy";
 import { NamedClass } from "@sb-types/Interfaces";
+import { removeFromArray } from "@utils/extensions";
 
 export class LocalizerKeysAssignation implements NamedClass {
 	private readonly _name: string;
@@ -84,16 +85,13 @@ export class LocalizerKeysAssignation implements NamedClass {
 				continue;
 			}
 
-			const index = owners.indexOf(owner);
+			if (!removeFromArray(owners, owner)) {
 
-			if (index === -1) {
 				this._log("warn", `Key "${key}" wasn't bound to the "${owner}". Skipped`);
 				continue;
 			}
 
-			divestResult.push(
-				owners.splice(index, 1)[0]
-			);
+			divestResult.push(key);
 		}
 
 		return divestResult;
