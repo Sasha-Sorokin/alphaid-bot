@@ -1,12 +1,27 @@
 import { sleep } from "@utils/utils";
 
-// tslint:disable-next-line:no-var-requires
-const bin2dec = require("@sb-types/Snowflake/binaryToDec.x.js");
-
 interface IFlakeIdOptions {
 	machineId?: number;
 	processId?: number;
 	timeOffset?: number;
+}
+
+/**
+ * Convert binary value to decimal using new BigInts
+ * @param binary Binary value
+ */
+function binaryToDecimal(binary: string) {
+	let decimal = 0n;
+
+	for (let i = 0, l = binary.length; i < l; i++) {
+		decimal = decimal * 2n;
+		
+		if (binary[i] === "1") {
+			decimal += 1n;
+		}
+	}
+
+	return decimal.toString();
 }
 
 /**
@@ -88,7 +103,7 @@ export class FlakeId {
 
 		const binary = `${timestamp}${machineId}${increment}`;
 
-		return bin2dec(binary);
+		return binaryToDecimal(binary);
 	}
 }
 
