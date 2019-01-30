@@ -6,7 +6,7 @@ import { removeFromArray } from "@utils/extensions";
 export class LocalizerKeysAssignation implements NamedClass {
 	private readonly _name: string;
 	private readonly _log: logger.ILogFunction;
-	private readonly _assignedKeys: Types.INullableHashMap<string[]>;
+	private readonly _assignedKeys: Types.INullableHashMap<any[]>;
 
 	constructor(name: string) {
 		this._log = logger(name);
@@ -35,7 +35,9 @@ export class LocalizerKeysAssignation implements NamedClass {
 	 * @param owner Who's binding the keys (signature, etc.)
 	 * @returns Successfully bound keys to the owner
 	 */
-	public assignKeys(keys: string | string[], owner: string) {
+	public assignKeys(keys: string | string[], owner: any) {
+		if (owner == null) throw new Error("Owner cannot be null or undefined");
+
 		keys = Array.isArray(keys) ? keys : [keys];
 
 		const assignedKeys = this._assignedKeys;
@@ -48,11 +50,9 @@ export class LocalizerKeysAssignation implements NamedClass {
 			let owners = assignedKeys[key];
 
 			if (!owners) {
-				this._log(`Key "${key}" being first time bound by "${owner}"`);
-
 				owners = assignedKeys[key] = [];
 			} else if (owners.includes(owner)) {
-				throw new Error(`Key "${key}" is already bound to this owner ("${owner}")`);
+				throw new Error(`Key "${key}" is already bound to this owner`);
 			}
 
 			owners.push(owner);
@@ -69,7 +69,9 @@ export class LocalizerKeysAssignation implements NamedClass {
 	 * @param owner Who's unbinding the keys (signature, etc.)
 	 * @returns Sucessfully unbound keys from the owner
 	 */
-	public divestKeys(keys: string | string[], owner: string) {
+	public divestKeys(keys: string | string[], owner: any) {
+		if (owner == null) throw new Error("Owner cannot be null or undefined");
+
 		keys = Array.isArray(keys) ? keys : [keys];
 
 		const assignedKeys = this._assignedKeys;
@@ -81,13 +83,14 @@ export class LocalizerKeysAssignation implements NamedClass {
 			const owners = assignedKeys[key];
 
 			if (!owners) {
-				this._log("warn", `Key "${key}" wasn't bound to anyone. Not unbinding the key`);
+				this._log("warn_trace", `Key "${key}" wasn't bound to anyone. Not unbinding the key`);
+
 				continue;
 			}
 
 			if (!removeFromArray(owners, owner)) {
+				this._log("warn_trace", `Key "${key}" wasn't bound to this owner. Skipped`);
 
-				this._log("warn", `Key "${key}" wasn't bound to the "${owner}". Skipped`);
 				continue;
 			}
 
