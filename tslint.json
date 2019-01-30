@@ -16,6 +16,7 @@
         "no-console": true,
         "no-consecutive-blank-lines": [ true, 2 ],
         "no-constant-condition": true,
+        "no-default-import": true,
         "no-debugger": true,
         "no-duplicate-variable": true,
         "no-empty": true,
