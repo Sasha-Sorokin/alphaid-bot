@@ -107,4 +107,3 @@ export class FlakeId {
 	}
 }
 
-export default FlakeId;
