@@ -365,7 +365,9 @@ export async function generateLocalizedEmbed(type: utils.EmbedType, target: User
  * @param path Path to load language(s) from
  * @returns Function to prune languages and unbind the keys
  */
-export async function extendAndAssign(path: string | string[], owner: string) : ExtendAssignReturn {
+export async function extendAndAssign(path: string | string[], owner: any) : ExtendAssignReturn {
+	if (owner == null) throw new Error("Owner cannot be null or undefined");
+
 	const extendedKeys = await $localizer.extendLanguages(
 		await $localizer.fileLoader.directoryToLanguagesTree(path)
 	);
