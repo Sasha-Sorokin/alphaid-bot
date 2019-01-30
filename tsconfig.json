@@ -35,6 +35,6 @@
 	"exclude": [
 		"node_modules",
 		"out",
-		"**/*.x.js"
+		"deprecated"
 	]
 }
