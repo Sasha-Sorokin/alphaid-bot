@@ -21,4 +21,3 @@ export class LocalizerJSONParser extends LocalizerParser {
 	}
 }
 
-export default LocalizerJSONParser;

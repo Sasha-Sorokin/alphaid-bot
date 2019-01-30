@@ -99,5 +99,3 @@ export class LocalizerKeysAssignation implements NamedClass {
 		return divestResult;
 	}
 }
-
-export default LocalizerKeysAssignation;

@@ -407,5 +407,3 @@ export class ScrollableMessage<T> {
 		);
 	}
 }
-
-export default ScrollableMessage;

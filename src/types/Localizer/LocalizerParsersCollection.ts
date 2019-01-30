@@ -1,4 +1,4 @@
-import LocalizerParser from "@sb-types/Localizer/LocalizerParser";
+import { LocalizerParser } from "@sb-types/Localizer/LocalizerParser";
 import { IHashMap } from "@sb-types/Types";
 import * as logger from "loggy";
 import * as shortid from "shortid";
@@ -143,5 +143,3 @@ export class LocalizerParsersCollection {
 		return this._parsers[extension] || undefined;
 	}
 }
-
-export default LocalizerParsersCollection;

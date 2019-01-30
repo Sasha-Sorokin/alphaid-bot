@@ -390,4 +390,3 @@ export class Humanizer {
 	}
 }
 
-export default Humanizer;

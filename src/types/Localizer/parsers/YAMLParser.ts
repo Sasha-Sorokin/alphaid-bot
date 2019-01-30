@@ -22,4 +22,3 @@ export class LocalizerYAMLParser extends LocalizerParser {
 	}
 }
 
-export default LocalizerYAMLParser;

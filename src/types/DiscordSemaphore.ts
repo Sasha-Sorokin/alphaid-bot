@@ -7,7 +7,7 @@ export const DEFAULT_CAPACITY = 1;
 type IQueueItem = (leave: () => number) => void;
 type PossibleTargets = string | Guild | TextChannel | DMChannel | GroupDMChannel;
 
-export default class DiscordSemaphore {
+export class DiscordSemaphore {
 	private readonly _queue: INullableHashMap<IQueueItem[]> = Object.create(null);
 	private readonly _currentWorkers: INullableHashMap<number> = Object.create(null);
 	private readonly _capacity: number;

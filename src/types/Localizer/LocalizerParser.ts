@@ -46,5 +46,3 @@ export abstract class LocalizerParser {
 		return true;
 	}
 }
-
-export default LocalizerParser;

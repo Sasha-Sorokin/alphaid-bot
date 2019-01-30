@@ -1,13 +1,13 @@
 import "any-promise/register/bluebird";
 import * as Humanizing from "@sb-types/Localizer/Humanizer";
-import { InterfaceSchema } from "@sb-types/Typer";
 import * as Types from "@sb-types/Types";
-import { ILogFunction } from "loggy";
 import * as path from "path";
 import * as formatMessage from "format-message";
 import * as getLogger from "loggy";
 import * as Interfaces from "@sb-types/Localizer/HumanizerInterfaces";
-import LocalizerParser from "@sb-types/Localizer/LocalizerParser";
+import { ILogFunction } from "loggy";
+import { InterfaceSchema } from "@sb-types/Typer";
+import { LocalizerParser } from "@sb-types/Localizer/LocalizerParser";
 import { LocalizerFileLoader, LangFileToCodeFunction, FilterType } from "@sb-types/Localizer/LocalizerFileLoader";
 import { LocalizerKeysAssignation } from "@sb-types/Localizer/LocalizerKeysAssignation";
 

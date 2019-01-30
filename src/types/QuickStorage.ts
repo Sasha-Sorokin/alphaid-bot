@@ -181,5 +181,3 @@ export async function createDatabase(name: string) {
 
 	return storage;
 }
-
-export default QuickStorage;
