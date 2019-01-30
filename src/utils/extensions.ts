@@ -105,3 +105,11 @@ export function isClass(obj: any): obj is Function {
 		typeof obj.toString === "function" &&
 		CLASS_REGEXP.test(obj.toString());
 }
+
+export function removeFromArray<T>(arr: T[], element: T) : T | undefined {
+	const index = arr.indexOf(element);
+
+	if (index === -1) return undefined;
+
+	return arr.splice(index, 1)[0];
+}
