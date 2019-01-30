@@ -1,6 +1,5 @@
 import * as Localization from "@sb-types/Localizer/Localizer";
-import { IModuleInfo } from "@sb-types/ModuleLoader/Interfaces";
-import * as ModLoader from "@sb-types/ModuleLoader/ModuleLoader";
+import * as ModLoader from "@sb-types/ModuleLoader/ModuleLoader.new";
 import * as djs from "discord.js";
 import * as logger from "loggy";
 import * as Raven from "raven";
@@ -21,13 +20,9 @@ export interface IBotConfig {
 	 */
 	botOwner: string;
 	/**
-	 * Modules to automatic load
+	 * Disabled modules
 	 */
-	autoLoad: string[];
-	/**
-	 * Array of modules info
-	 */
-	modules: IModuleInfo[];
+	disableModules: string[];
 	/**
 	 * Discord Client's config
 	 */
@@ -43,12 +38,6 @@ export interface IBotConfig {
 		enabled: boolean;
 		shards: number;
 	};
-	/**
-	 * Enable queue mode?
-	 * If `false`, all modules will be loaded at same time
-	 * Parallel loading is good for debugging
-	 */
-	queueModuleLoading: boolean;
 	/**
 	 * Raven URL (Sentry.io)
 	 */
@@ -124,13 +113,9 @@ const SCHEMA_CONFIG: InterfaceSchema<IBotConfig> = {
 	"token": { type: "string" },
 	"name": { type: "string" },
 	"botOwner": { type: "string" },
-	"autoLoad": {
+	"disableModules": {
 		type: "object", isArray: true,
 		elementSchema: { type: "string" }
-	},
-	"modules": {
-		type: "object", isArray: true,
-		elementSchema: ModLoader.SCHEMA_MODULEINFO
 	},
 	"djsConfig": { type: "any" },
 	"localizerOptions": {
@@ -144,7 +129,6 @@ const SCHEMA_CONFIG: InterfaceSchema<IBotConfig> = {
 			"shards": { type: "number", notNaN: true }
 		}
 	},
-	"queueModuleLoading": { type: "boolean", optional: true },
 	"ravenUrl": { type: "string", optional: true }
 };
 
@@ -201,10 +185,9 @@ export class BotInstance {
 		if (this.modLoader) { throw new Error("ModLoader is already prepared"); }
 
 		this.modLoader = new ModLoader.ModuleLoader({
-			basePath: "./cogs/",
+			modulesPath: "./cogs/",
 			name: `${this._config.name}:ModLoader`,
-			defaultSet: this._config.autoLoad,
-			registry: ModLoader.convertToModulesMap(this._config.modules)
+			disabled: this._config.disableModules
 		});
 
 		// Public module loader
@@ -213,7 +196,10 @@ export class BotInstance {
 			writable: true, value: this.modLoader
 		});
 
-		await this.modLoader.loadModules();
+		await this.modLoader.rebuildRegistry();
+
+		await this.modLoader.constructAll();
+		await this.modLoader.initAll();
 	}
 
 	/**
@@ -451,7 +437,7 @@ export class BotInstance {
 	 */
 	public async shutdown(reason = "unknown") {
 		this._log("info", `Shutting down with the reason: "${reason}"`);
-		await this.modLoader.unload(Object.keys(this.modLoader.loadedModulesRegistry));
+		await this.modLoader.unloadAll(reason);
 		this._discordClient.destroy();
 	}
 }
