@@ -1,4 +1,3 @@
-import { Whitelist } from "@cogs/whitelist/whitelist";
 import { EmbedType } from "@utils/utils";
 import { stripSpaces } from "@utils/text";
 import { Plugin } from "@cogs/plugin";
@@ -29,9 +28,7 @@ let instanceInitialized = false;
 
 export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> {
 	private _prefixAllInterface: ModulePublicInterface<PrefixAll>;
-	private _whitelistInterface: ModulePublicInterface<Whitelist>;
 	private readonly _log = getLogger("PrefixAllPlugin");
-	private readonly _allowNoWhitelistHandling: boolean;
 	private readonly _limitations: IPrefixAllPluginLimitations;
 
 	constructor(options: IPrefixAllPluginOptions) {
@@ -43,7 +40,6 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 			throw new Error("Could not initializate the prefix all plugin another time. Only one instance could work at the same time");
 		}
 
-		this._allowNoWhitelistHandling = !!options.allowNoWhitelistHandling;
 		this._limitations = options.limitations && (options.limitations.non_partners && options.limitations.partners) ? options.limitations : DEFAULT_LIMITATIONS;
 	}
 
@@ -59,15 +55,6 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 		}
 
 		this._prefixAllInterface = prefixAllInterface;
-
-		this._log("info", "Searching for `Whitelist` core");
-		const whitelistKeeper = i.getDependency<Whitelist>("legacy-whitelist");
-
-		if (whitelistKeeper) {
-			this._whitelistInterface = whitelistKeeper;
-		} else {
-			this._log("warn", "Whitelist keeper not found");
-		}
 
 		instanceInitialized = true;
 
@@ -153,17 +140,7 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 			});
 		}
 
-		const whitelistInstance = this._whitelistInterface.getBase();
-
-		if (!whitelistInstance && !this._allowNoWhitelistHandling) {
-			this._log("warn", "`Whitelist` module instance not found!");
-
-			return msg.channel.send({
-				embed: await i18n.generateLocalizedEmbed(EmbedType.Error, msg.member, "PREFIXALL_PREFIX_INTERNALERROR")
-			});
-		}
-
-		const limitation = whitelistInstance && (await whitelistInstance.isWhitelisted(msg.guild)) ? this._limitations.partners : this._limitations.non_partners;
+		const limitation = this._limitations.non_partners;
 
 		if (guildPrefixes.length >= limitation) { // inclusive
 
@@ -357,11 +334,6 @@ interface IPrefixAllPluginOptions {
 	 * Allowing to have many prefixes to everyone could case many performance problems for depending plugins. Recommended count - less than 5 prefixes.
 	 */
 	limitations: IPrefixAllPluginLimitations;
-	/**
-	 * Allows handling prefix adding requests when whitelist module not found.
-	 * If disabled (default), prints error and denies request.
-	 */
-	allowNoWhitelistHandling: boolean;
 }
 
 export default PrefixAllPlugin;
