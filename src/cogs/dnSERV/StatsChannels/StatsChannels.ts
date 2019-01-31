@@ -6,7 +6,7 @@ import { DateTime } from "luxon";
 import { ErrorMessages } from "@sb-types/Consts";
 import { Guild, VoiceChannel } from "discord.js";
 import { ModulePrivateInterface } from "@sb-types/ModuleLoader/PrivateInterface";
-import { toGuildLocaleString, extendAndAssign, ExtensionAssignUnhandleFunction } from "@utils/ez-i18n";
+import { toGuildLocaleString, extendAndAssign, ExtensionAssignUnhandleFunction, localizeForGuild } from "@utils/ez-i18n";
 
 export interface IStatsChannelsSettings {
 	guildId: string;
@@ -28,9 +28,6 @@ type ResolvingData = {
 const CHANNEL_TYPES: Array<keyof StatsChannelsProto<any>> = ["members", "time"];
 
 const ONE_MINUTE = 60000; // ms
-
-// FIXME: use ez-i18n
-const MEMBERS_STR = "{members, plural, one {# участник} few {# участника} other {# участников}}";
 
 export class StatsChannels implements IModule<StatsChannels> {
 	private static readonly _log = getLogger("dnSERV: StatsChannels");
@@ -178,10 +175,12 @@ export class StatsChannels implements IModule<StatsChannels> {
 			return;
 		}
 
-		const generatedString = $localizer.formatString(
-			"ru-RU", // currently this string
-			MEMBERS_STR, {
-				members: this._managedGuild.memberCount
+		const guild = this._managedGuild;
+
+		const generatedString = await localizeForGuild(
+			guild,
+			"DNSERV_STATCHANNEL_FORMAT_MEMBERS", {
+				members: guild.memberCount
 			}
 		);
 
