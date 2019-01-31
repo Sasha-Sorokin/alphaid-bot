@@ -306,7 +306,7 @@ export class ModuleBase<T> extends EventEmitter {
 			this._state = Interfaces.ModuleLoadState.Unloaded;
 		} else {
 			try {
-				const unloaded = await this._base.unload(reason);
+				const unloaded = await this._base.unload(this._privateInterface, reason);
 				if (unloaded) {
 					this._base = undefined;
 					this._state = Interfaces.ModuleLoadState.Unloaded;
