@@ -4,3 +4,6 @@
 [submodule "src/cogs/reactionEventFix"]
 	path = src/cogs/reactionEventFix
 	url = git@github.com:Sasha-Sorokin/alphaid-bot-reactions-fix.git
+[submodule "src/cogs/dnSERV"]
+	path = src/cogs/dnSERV
+	url = git@github.com:dnserv-reborn/dnserv-alphaid-bot.git
