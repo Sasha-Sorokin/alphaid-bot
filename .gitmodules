@@ -1,3 +1,6 @@
 [submodule "src/cogs/8ball"]
 	path = src/cogs/8ball
 	url = ../../snowball-dev-group/snowball-bot-8ball.git
+[submodule "src/cogs/reactionEventFix"]
+	path = src/cogs/reactionEventFix
+	url = git@github.com:Sasha-Sorokin/alphaid-bot-reactions-fix.git
