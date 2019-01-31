@@ -275,7 +275,7 @@ export class ModuleBase<T> extends EventEmitter {
 	 * @fires ModuleBase<T>#unloaded
 	 * @returns Promise which'll be resolved with this module's base once module is unloaded or destroyed
 	 */
-	public async unload(reason: any = "unload", unloadDependents = true) {
+	public async unload(reason = "unload", unloadDependents = true) {
 		if (
 			this._state !== Interfaces.ModuleLoadState.Initialized &&
 			this._state !== Interfaces.ModuleLoadState.Constructed
