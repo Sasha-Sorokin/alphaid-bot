@@ -17,13 +17,13 @@ export interface IModule<T> {
 	 * The private interface will be also supplied within the initialization and unload states
 	 * @param i Private interface to interact with module keeper
 	 */
-	supplyPrivateInterface?(i?: ModulePrivateInterface<T>): void;
+	supplyPrivateInterface?(i: ModulePrivateInterface<T>): void;
 	/**
 	 * A function that called to unload the modules to perform cleanup
 	 * @param reason Reason that caused module to unload
 	 * @param i Private interface to interact with module keeper
 	 */
-	unload(i: ModulePrivateInterface<T>, reason?: string): Promise<boolean> | boolean;
+	unload(i: ModulePrivateInterface<T>, reason: string): Promise<boolean> | boolean;
 }
 
 export interface IModuleInfo {
