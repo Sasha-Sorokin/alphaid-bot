@@ -28,7 +28,7 @@
     "name": "alphaid-bot",
     "displayName": "Alphaid Bot for Discord",
     "author": "DaFri_Nochiterov",
-    "version": "2.0.12",
+    "version": "2.0.17",
     "main": "init.js",
     "devDependencies": {
         "@types/async": "^2.4.0",
