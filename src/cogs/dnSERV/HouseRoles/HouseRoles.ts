@@ -100,7 +100,7 @@ export class HouseRoles implements IModule<HouseRoles> {
 
 		// Guild found, see if the user in the guild too
 		await HouseRoles._checkToken(token, guildId);
-		
+
 		this._userToken = token;
 
 		// Now checking the roles
@@ -234,26 +234,21 @@ export class HouseRoles implements IModule<HouseRoles> {
 					await generateLocalizedEmbed(
 						EmbedType.OK,
 						sender, {
-							key: "DNSERV_HOUSEROLE_ASSIGNED",
+							key: "DNSERV_HOUSEROLE_ASSIGNED@SELF",
 							formatOptions: {
 								...(
 									await HouseRoles._housesArgs(
 										currentHouses,
 										sender
 									)
-								),
-								caller: "self"
+								)
 							}
 						}
 					) :
 					await generateLocalizedEmbed(
 						EmbedType.Error,
-						sender, {
-							key: "DNSERV_HOUSEROLE_ERR_NOHOUSE",
-							formatOptions: {
-								caller: "self"
-							}
-						}
+						sender,
+						"DNSERV_HOUSEROLE_ERR_NOHOUSE@SELF"
 					)
 			)
 		});
@@ -285,25 +280,20 @@ export class HouseRoles implements IModule<HouseRoles> {
 				deassignResult == null ?
 					generateLocalizedEmbed(
 						EmbedType.Error,
-						sender, {
-							key: "DNSERV_HOUSEROLE_ERR_NOHOUSE",
-							formatOptions: {
-								caller: "self"
-							}
-						}
+						sender,
+						"DNSERV_HOUSEROLE_ERR_NOHOUSE@SELF"
 					) :
 					generateLocalizedEmbed(
 						EmbedType.OK,
 						sender, {
-							key: "DNSERV_HOUSEROLE_DEASSIGN",
+							key: "DNSERV_HOUSEROLE_DEASSIGN@SELF",
 							formatOptions: {
 								...(
 									await HouseRoles._housesArgs(
 										deassignResult,
 										sender
 									)
-								),
-								caller: "self"
+								)
 							}
 						}
 					)
@@ -379,7 +369,7 @@ export class HouseRoles implements IModule<HouseRoles> {
 					generateLocalizedEmbed(
 						EmbedType.OK,
 						sender, {
-							key: "DNSERV_HOUSEROLE_ASSIGNED",
+							key: "DNSERV_HOUSEROLE_ASSIGNED@OTHER",
 							formatOptions: {
 								...(
 									await HouseRoles._housesArgs(
@@ -387,18 +377,16 @@ export class HouseRoles implements IModule<HouseRoles> {
 										sender
 									)
 								),
-								username: resolvedProposal.toString(),
-								caller: "managed"
+								username: resolvedProposal.toString()
 							}
 						}
 					) :
 					generateLocalizedEmbed(
 						EmbedType.Error,
 						sender, {
-							key: "DNSERV_HOUSEROLE_ERR_NOHOUSE",
+							key: "DNSERV_HOUSEROLE_ERR_NOHOUSE@OTHER",
 							formatOptions: {
-								username: resolvedProposal.toString(),
-								caller: "managed"
+								username: resolvedProposal.toString()
 							}
 						}
 					)
@@ -472,17 +460,16 @@ export class HouseRoles implements IModule<HouseRoles> {
 					generateLocalizedEmbed(
 						EmbedType.Error,
 						sender, {
-							key: "DNSERV_HOUSEROLE_ERR_NOROLES",
+							key: "DNSERV_HOUSEROLE_ERR_NOROLES@OTHER",
 							formatOptions: {
-								username: resolvedProposal.toString(),
-								caller: "managed"
+								username: resolvedProposal.toString()
 							}
 						}
 					) :
 					generateLocalizedEmbed(
 						EmbedType.OK,
 						sender, {
-							key: "DNSERV_HOUSEROLE_DEASSIGN",
+							key: "DNSERV_HOUSEROLE_DEASSIGN@OTHER",
 							formatOptions: {
 								...(
 									await HouseRoles._housesArgs(
@@ -490,8 +477,7 @@ export class HouseRoles implements IModule<HouseRoles> {
 										sender
 									)
 								),
-								username: resolvedProposal.toString(),
-								caller: "managed"
+								username: resolvedProposal.toString()
 							}
 						}
 					)
@@ -505,9 +491,8 @@ export class HouseRoles implements IModule<HouseRoles> {
 				embed: await generateLocalizedEmbed(
 					EmbedType.Error,
 					sender, {
-						key: "DNSERV_HOUSEROLE_ERR_APIERR",
+						key: `DNSERV_HOUSEROLE_ERR_APIERR@${caller === "self" ? "SELF" : "OTHER"}`,
 						formatOptions: {
-							caller,
 							username: sender.toString()
 						}
 					}
@@ -546,7 +531,7 @@ export class HouseRoles implements IModule<HouseRoles> {
 					"DNSERV_HOUSEROLE_HOUSE+JOINER"
 				)
 			),
-			rolesCount,
+			rolesCount
 		};
 	}
 
