@@ -1,3 +1,0 @@
----
-DNSERV_STATCHANNEL_FORMAT_MEMBERS: "{members, plural, one {# участник} few {# участника}  other {# участников}}"
-DNSERV_STATCHANNEL_FORMAT_TIME: "{time}"
