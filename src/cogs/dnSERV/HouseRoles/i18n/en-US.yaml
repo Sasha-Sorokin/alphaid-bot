@@ -38,10 +38,10 @@ DNSERV_HOUSEROLE_HOUSE_BRILLIANCE: "Brilliance"
 DNSERV_HOUSEROLE_HOUSE+JOINER: ", "
 
 DNSERV_HOUSEROLE_ASSIGNED@SELF: |-
-  You have been assigned {rolesCount, plural, =0 {no role} one {{houses} role} other {{housus} roles}}.
+  You have been assigned {rolesCount, plural, =0 {no role} one {{houses} role} other {{houses} roles}}.
 
 DNSERV_HOUSEROLE_ASSIGNED@OTHER: |-
-  {username} have been assigned the {rolesCount, plural, =0 {no role} one {{houses} role} other {{housus} roles}}.
+  {username} have been assigned the {rolesCount, plural, =0 {no role} one {{houses} role} other {{houses} roles}}.
 
 DNSERV_HOUSEROLE_DEASSIGN@SELF: |-
   Your house {rolesCount, plural, one {role of {houses} was} other {roles of {houses} were}} removed.
