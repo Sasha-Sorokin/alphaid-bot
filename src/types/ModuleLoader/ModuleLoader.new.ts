@@ -26,7 +26,7 @@ export const SCHEMA_MODULEINFO: ISchemaObject = {
 	}
 };
 
-export const MODNAME_REGEXP = /^[a-z.-]{0,32}$/;
+export const MODNAME_REGEXP = /^[a-z\_.\-0-9]{0,32}$/;
 
 export interface IModuleLoaderConfig {
 	/**
