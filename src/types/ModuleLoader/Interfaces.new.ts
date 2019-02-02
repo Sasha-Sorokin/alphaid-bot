@@ -87,7 +87,7 @@ export const enum ModuleLoadState {
 	/**
 	 * Module has failed to construct or initialize
 	 */
-	Failure = "failure"
+	Failure = "error"
 }
 
 export const enum ModuleEvent {
