@@ -326,8 +326,8 @@ export function generateEmbed(type: EmbedType, description: string | undefined, 
 			};
 		} else if (type !== EmbedType.Empty) {
 			embed.footer = {
-				text: $discordBot.user.username,
-				icon_url: $discordBot.user.displayAvatarURL({ format: "webp", size: 128 })
+				text: $discordBot.user!.username,
+				icon_url: $discordBot.user!.displayAvatarURL({ format: "webp", size: 128 })
 			};
 		}
 
