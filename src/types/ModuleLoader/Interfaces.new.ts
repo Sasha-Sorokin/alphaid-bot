@@ -1,6 +1,8 @@
 import { INullableHashMap } from "@sb-types/Types";
 import { ModulePrivateInterface } from "./PrivateInterface";
 
+export type ModuleBase<T> = T & IModule<T>;
+
 export interface IModule<T> {
 	/**
 	 * An optional async method of the initialization
