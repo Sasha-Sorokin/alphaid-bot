@@ -251,9 +251,6 @@ export class BotInstance {
 			}
 		}
 
-		djsOptions.shardId = this._internalConfiguration.shardId;
-		djsOptions.shardCount = this._internalConfiguration.shardsCount;
-
 		this._log("info", "Preparing the Discord client...");
 
 		// Make the new Discord Client
