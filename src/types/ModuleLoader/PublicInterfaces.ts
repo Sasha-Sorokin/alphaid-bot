@@ -1,13 +1,13 @@
-import { ModuleBase } from "./ModuleBase.new";
-import { ModuleLoadState } from "./Interfaces.new";
+import { ModuleKeeper } from "./ModuleKeeper.new";
+import { ModuleLoadState, ModuleBase } from "./Interfaces.new";
 
-const KEEPER_REFERENCES = new WeakMap<ModulePublicInterface<any>, ModuleBase<any>>();
+const KEEPER_REFERENCES = new WeakMap<ModulePublicInterface<any>, ModuleKeeper<any>>();
 
 /**
  * Public interface to interact with module keeper
  */
 export class ModulePublicInterface<T> {
-	constructor(base: ModuleBase<T>) {
+	constructor(base: ModuleKeeper<T>) {
 		KEEPER_REFERENCES.set(this, base);
 	}
 
@@ -21,7 +21,7 @@ export class ModulePublicInterface<T> {
 	/**
 	 * Gets base class of the module
 	 */
-	public getBase() : T | undefined {
+	public getBase() : ModuleBase<T> | undefined {
 		return KEEPER_REFERENCES.get(this)!.base;
 	}
 
@@ -38,11 +38,11 @@ export class ModulePublicInterface<T> {
 	 * If module is already initialized, then immediately calls the callback. Otherwise subscribes you to the initialized event
 	 * @param callback Callback function that will be called when module is initialized
 	 */
-	public onInit(callback: (base: T) => void) {
+	public onInit(callback: (base: ModuleBase<T>) => void) {
 		return KEEPER_REFERENCES.get(this)!.onInit(callback);
 	}
 
-	public onConstruct(callback: (base: T) => void) {
+	public onConstruct(callback: (base: ModuleBase<T>) => void) {
 		return KEEPER_REFERENCES.get(this)!.onConstruct(callback);
 	}
 }

@@ -3,7 +3,7 @@ import { ISchemaObject, InterfaceSchema } from "@sb-types/Typer";
 import * as logger from "loggy";
 import * as path from "path";
 import * as Interfaces from "@sb-types/ModuleLoader/Interfaces.new";
-import { ModuleBase } from "@sb-types/ModuleLoader/ModuleBase.new";
+import { ModuleKeeper } from "@sb-types/ModuleLoader/ModuleKeeper.new";
 import * as ModuleDiscovery from "./Discovery/ModuleDiscovery";
 import * as semver from "semver";
 
@@ -63,7 +63,7 @@ export class ModuleLoader {
 	/**
 	 * Keepers for modules
 	 */
-	private readonly _keepers: INullableHashMap<ModuleBase<any>> = Object.create(null);
+	private readonly _keepers: INullableHashMap<ModuleKeeper<any>> = Object.create(null);
 
 	private readonly _log: logger.ILogFunction;
 
@@ -178,7 +178,7 @@ export class ModuleLoader {
 
 			const modInfo = this._infos[name]!;
 
-			const modKeeper = new ModuleBase(modInfo);
+			const modKeeper = new ModuleKeeper(modInfo);
 
 			this._keepers[name] = modKeeper;
 
@@ -339,7 +339,7 @@ export class ModuleLoader {
 	 * @param name Name to look up
 	 */
 	public getKeeper<T>(name: string) {
-		return <ModuleBase<T>> this._keepers[name] || undefined;
+		return <ModuleKeeper<T>> this._keepers[name] || undefined;
 	}
 
 	/**

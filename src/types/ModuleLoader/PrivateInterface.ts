@@ -1,10 +1,11 @@
-import { sanitizeFilename } from "@utils/filename";
-import { ModuleBase } from "./ModuleBase.new";
-import { ModulePublicInterface } from "./PublicInterfaces";
 import * as path from "path";
+import { ModuleBase } from "./Interfaces.new";
+import { ModuleKeeper } from "./ModuleKeeper.new";
 import { promises as fs } from "fs";
+import { sanitizeFilename } from "@utils/filename";
+import { ModulePublicInterface } from "./PublicInterfaces";
 
-const KEEPER_REFERENCES = new WeakMap<ModulePrivateInterface<any>, ModuleBase<any>>();
+const KEEPER_REFERENCES = new WeakMap<ModulePrivateInterface<any>, ModuleKeeper<any>>();
 
 const CONFIG_BASEPATH = path.join(process.cwd(), "config");
 
@@ -17,7 +18,7 @@ export const enum ConfigFormat {
  * Private interface to interact with module keeper
  */
 export class ModulePrivateInterface<T> {
-	constructor(keeper: ModuleBase<T>) {
+	constructor(keeper: ModuleKeeper<T>) {
 		KEEPER_REFERENCES.set(this, keeper);
 	}
 
@@ -36,7 +37,7 @@ export class ModulePrivateInterface<T> {
 	 * @throws Throws an error if base is invalid
 	 * @returns `true` if provided base the same in the keeper
 	 */
-	public baseCheck(base: T) {
+	public baseCheck(base: ModuleBase<T>) {
 		if (KEEPER_REFERENCES.get(this)!.base !== base) {
 			throw new Error("Invalid base");
 		}

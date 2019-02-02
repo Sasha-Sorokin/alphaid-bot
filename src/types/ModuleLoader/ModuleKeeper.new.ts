@@ -1,15 +1,16 @@
-import * as Interfaces from "@sb-types/ModuleLoader/Interfaces.new";
+// import * as Interfaces from "@sb-types/ModuleLoader/Interfaces.new";
 import { EventEmitter } from "events";
-import { isClass, removeFromArray } from "@utils/extensions";
 import { ModulePublicInterface } from "./PublicInterfaces";
 import { ModulePrivateInterface } from "./PrivateInterface";
+import { isClass, removeFromArray } from "@utils/extensions";
+import { ModuleLoadState, ModuleEvent, IModuleInfo, ModuleBase } from "@sb-types/ModuleLoader/Interfaces.new";
 
-const CONSTRUCTION_LOCKER = new WeakSet<ModuleBase<any>>();
-const INITIALIZATION_LOCKER = new WeakSet<ModuleBase<any>>();
+const CONSTRUCTION_LOCKER = new WeakSet<ModuleKeeper<any>>();
+const INITIALIZATION_LOCKER = new WeakSet<ModuleKeeper<any>>();
 
-const PENDING_STATES = new WeakMap<ModuleBase<any>, "unload" | "initialization">();
+const PENDING_STATES = new WeakMap<ModuleKeeper<any>, "unload" | "initialization">();
 
-export class ModuleBase<T> extends EventEmitter {
+export class ModuleKeeper<T> extends EventEmitter {
 	/**
 	 * Base information about module
 	 */
@@ -53,21 +54,21 @@ export class ModuleBase<T> extends EventEmitter {
 		return this._publicInterface;
 	}
 
-	private _state: Interfaces.ModuleLoadState = Interfaces.ModuleLoadState.Prototype;
-	private _base?: Interfaces.IModule<T> & T;
+	private _state: ModuleLoadState = ModuleLoadState.Prototype;
+	private _base?: ModuleBase<T>;
 
-	private readonly _info: Interfaces.IModuleInfo;
+	private readonly _info: IModuleInfo;
 
 	// if this module unloads, the dependents will be unloaded too
-	private readonly _dependents: Array<ModuleBase<any>> = [];
+	private readonly _dependents: Array<ModuleKeeper<any>> = [];
 
 	// if one dependency unloads, the module unloads too
-	private readonly _dependencies: Array<ModuleBase<any>> = [];
+	private readonly _dependencies: Array<ModuleKeeper<any>> = [];
 
 	private readonly _publicInterface: ModulePublicInterface<T>;
 	private readonly _privateInterface: ModulePrivateInterface<T>;
 
-	constructor(info: Interfaces.IModuleInfo) {
+	constructor(info: IModuleInfo) {
 		super();
 
 		this._info = info;
@@ -80,7 +81,7 @@ export class ModuleBase<T> extends EventEmitter {
 	 * Adds a dependent module keeper
 	 * @param dependent Dependent to add
 	 */
-	private addDependent(dependent: ModuleBase<any>) {
+	private addDependent(dependent: ModuleKeeper<any>) {
 		this._dependents.push(dependent);
 
 		return this;
@@ -92,7 +93,7 @@ export class ModuleBase<T> extends EventEmitter {
 	 * That automatically adds a dependent to the dependency
 	 * @param dependency Dependency to add
 	 */
-	public addDependency(dependency: ModuleBase<any>) {
+	public addDependency(dependency: ModuleKeeper<any>) {
 		this._dependencies.push(dependency);
 
 		dependency.addDependent(this);
@@ -104,7 +105,7 @@ export class ModuleBase<T> extends EventEmitter {
 	 * Removes a dependent module keeper
 	 * @param dependent Dependent to remove
 	 */
-	private removeDependent(dependent: ModuleBase<any>) {
+	private removeDependent(dependent: ModuleKeeper<any>) {
 		const removedDependent = removeFromArray(this._dependents, dependent);
 
 		if (removedDependent === undefined) {
@@ -122,7 +123,7 @@ export class ModuleBase<T> extends EventEmitter {
 	 * That automatically removes a dependent from the dependency
 	 * @param dependency Dependency to remove
 	 */
-	public removeDependency(dependency: ModuleBase<any>) {
+	public removeDependency(dependency: ModuleKeeper<any>) {
 		const removedDependency = removeFromArray(this._dependencies, dependency);
 
 		if (removedDependency === undefined) {
@@ -139,7 +140,7 @@ export class ModuleBase<T> extends EventEmitter {
 	 * @returns Promise which'll be resolved with this module's base once module is loaded
 	 */
 	public async construct() {
-		if (this._state !== Interfaces.ModuleLoadState.Prototype) {
+		if (this._state !== ModuleLoadState.Prototype) {
 			throw new Error("Module is not in prototype state to aperform construction");
 		}
 
@@ -154,16 +155,16 @@ export class ModuleBase<T> extends EventEmitter {
 		for (let i = 0, l = dependencies.length; i < l; i++) {
 			const dependency = dependencies[i];
 
-			if (dependency.state === Interfaces.ModuleLoadState.Prototype) {
+			if (dependency.state === ModuleLoadState.Prototype) {
 				await dependency.construct();
-			} else if (dependency.state === Interfaces.ModuleLoadState.Failure) {
+			} else if (dependency.state === ModuleLoadState.Failure) {
 				throw new Error("One of the dependencies has failed to construct or initialize");
 			}
 		}
 
 		// Construct mod
 
-		this.emit(Interfaces.ModuleEvent.Construction);
+		this.emit(ModuleEvent.Construction);
 
 		try {
 			let mod = require(this._info.main);
@@ -187,21 +188,21 @@ export class ModuleBase<T> extends EventEmitter {
 
 			this._base = base;
 		} catch (err) {
-			this.emit("error", {
+			this.emit(ModuleEvent.Failure, {
 				state: "construct",
 				error: err
 			});
 			
-			this._state = Interfaces.ModuleLoadState.Failure;
+			this._state = ModuleLoadState.Failure;
 			
 			throw err;
 		}
 
-		this._state = Interfaces.ModuleLoadState.Constructed;
+		this._state = ModuleLoadState.Constructed;
 
 		CONSTRUCTION_LOCKER.delete(this);
 
-		this.emit(Interfaces.ModuleEvent.Constructed, this._base);
+		this.emit(ModuleEvent.Constructed, this._base);
 
 		return this;
 	}
@@ -212,7 +213,7 @@ export class ModuleBase<T> extends EventEmitter {
 	 * @fires ModuleBase<T>#initialized If module has initialized without errors the event will be fired
 	 */
 	public async initialize() {
-		if (this._state !== Interfaces.ModuleLoadState.Constructed) {
+		if (this._state !== ModuleLoadState.Constructed) {
 			throw new Error("Module is not in constucted state to aperform initialization");
 		}
 
@@ -227,18 +228,18 @@ export class ModuleBase<T> extends EventEmitter {
 		for (let i = 0, l = dependencies.length; i < l; i++) {
 			const dependency = dependencies[i];
 
-			if (dependency.state === Interfaces.ModuleLoadState.Prototype) {
+			if (dependency.state === ModuleLoadState.Prototype) {
 				await dependency.construct(); // should we throw an error instead?
 			}
 
-			if (dependency.state === Interfaces.ModuleLoadState.Constructed) {
+			if (dependency.state === ModuleLoadState.Constructed) {
 				await dependency.initialize();
-			} else if (dependency.state === Interfaces.ModuleLoadState.Failure) {
+			} else if (dependency.state === ModuleLoadState.Failure) {
 				throw new Error("One of the dependencies has failed to construct or initialize");
 			}
 		}
 
-		this.emit(Interfaces.ModuleEvent.Initialization);
+		this.emit(ModuleEvent.Initialization);
 
 		PENDING_STATES.set(this, "initialization");
 
@@ -247,7 +248,7 @@ export class ModuleBase<T> extends EventEmitter {
 				await this._base.init(this._privateInterface);
 			}
 		} catch (err) {
-			this.emit("error", {
+			this.emit(ModuleEvent.Failure, {
 				state: "construct",
 				error: err
 			});
@@ -255,12 +256,12 @@ export class ModuleBase<T> extends EventEmitter {
 			throw err;
 		}
 
-		this._state = Interfaces.ModuleLoadState.Initialized;
+		this._state = ModuleLoadState.Initialized;
 
 		INITIALIZATION_LOCKER.delete(this);
 		PENDING_STATES.delete(this);
 
-		this.emit(Interfaces.ModuleEvent.Initialized, this._base);
+		this.emit(ModuleEvent.Initialized, this._base);
 
 		return this;
 	}
@@ -277,44 +278,44 @@ export class ModuleBase<T> extends EventEmitter {
 	 */
 	public async unload(reason = "unload", unloadDependents = true) {
 		if (
-			this._state !== Interfaces.ModuleLoadState.Initialized &&
-			this._state !== Interfaces.ModuleLoadState.Constructed
+			this._state !== ModuleLoadState.Initialized &&
+			this._state !== ModuleLoadState.Constructed
 		) {
 			throw new Error("Module is not loaded");
 		}
 
 		if (unloadDependents) {
+			const name = this._info.name;
 
 			for (let i = 0, l = this._dependents.length; i < l; i++) {
 				const dependent = this._dependents[i];
 				
-				dependent.unload("dependent_");
+				dependent.unload(`dependent:${name}`);
 			}
-
 		}
 
-		this.emit("unloading", this._base);
+		this.emit(ModuleEvent.Unloading, this._base);
 
 		PENDING_STATES.set(this, "unload");
 
 		if (!this._base) {
-			this.emit("error", {
+			this.emit(ModuleEvent.Failure, {
 				state: "unload",
 				error: new Error("Module was already unloaded, base variable is `undefined`")
 			});
 
-			this._state = Interfaces.ModuleLoadState.Unloaded;
+			this._state = ModuleLoadState.Unloaded;
 		} else {
 			try {
 				const unloaded = await this._base.unload(this._privateInterface, reason);
 				if (unloaded) {
 					this._base = undefined;
-					this._state = Interfaces.ModuleLoadState.Unloaded;
+					this._state = ModuleLoadState.Unloaded;
 				} else {
 					throw new Error("Returned `false`: that means module has troubles with unloading");
 				}
 			} catch (err) {
-				this.emit("error", {
+				this.emit(ModuleEvent.Failure, {
 					state: "unload#unload",
 					error: err
 				});
@@ -323,7 +324,7 @@ export class ModuleBase<T> extends EventEmitter {
 
 		PENDING_STATES.delete(this);
 
-		this.emit("unloaded");
+		this.emit(ModuleEvent.Unloaded);
 
 		return this;
 	}
@@ -361,13 +362,13 @@ export class ModuleBase<T> extends EventEmitter {
 	 * @listens ModuleBase<T>#initialized
 	 */
 	public onInit(callback: (base: T) => void) {
-		if (this._state === Interfaces.ModuleLoadState.Initialized && this._base) {
+		if (this._state === ModuleLoadState.Initialized && this._base) {
 			callback(this._base);
 
 			return this;
 		}
 
-		return this.once("initialized", callback);
+		return this.once(ModuleEvent.Initialized, callback);
 	}
 
 	/**
@@ -379,12 +380,12 @@ export class ModuleBase<T> extends EventEmitter {
 	 * @listens ModuleBase<T>#constructed
 	 */
 	public onConstruct(callback: (base: T) => void) {
-		if (this._state === Interfaces.ModuleLoadState.Constructed && this._base) {
+		if (this._state === ModuleLoadState.Constructed && this._base) {
 			callback(this._base);
 
 			return this;
 		}
 
-		return this.once("constructed", callback);
+		return this.once(ModuleEvent.Constructed, callback);
 	}
 }
