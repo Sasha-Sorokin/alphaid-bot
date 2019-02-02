@@ -362,7 +362,7 @@ export class ScrollableMessage<T> {
 				if (!reactionAuthor) { return false; }
 
 				// checking if triggered by bot
-				if (reactionAuthor.id === this.message.client.user.id) { return false; }
+				if (reactionAuthor.id === this.message.client.user!.id) { return false; }
 
 				// then checking for permissions
 				if (this.configuration.actionAccessCheck && !this.configuration.actionAccessCheck(reactionAuthor)) { return false; }
@@ -379,7 +379,7 @@ export class ScrollableMessage<T> {
 				if (!reactionAuthor) { return; }
 
 				// if by some reason it collected bot's reaction - returning
-				if (reactionAuthor.id === this.message.client.user.id) { return; }
+				if (reactionAuthor.id === this.message.client.user!.id) { return; }
 
 				// if waiting for controller initialization
 				if (!this._controllerInitialized) { return; }
