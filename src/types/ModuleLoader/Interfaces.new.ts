@@ -23,7 +23,7 @@ export interface IModule<T> {
 	 * @param reason Reason that caused module to unload
 	 * @param i Private interface to interact with module keeper
 	 */
-	unload(i: ModulePrivateInterface<T>, reason: string): Promise<boolean> | boolean;
+	unload(i: ModulePrivateInterface<T>, reason: string): Promise<boolean>;
 }
 
 export interface IModuleInfo {
