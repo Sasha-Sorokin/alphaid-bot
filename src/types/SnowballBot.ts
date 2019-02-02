@@ -289,7 +289,7 @@ export class BotInstance {
 		this._discordClient.on("disconnect", async (reason) => {
 			this._log("warn", "Disconnected with the reason:", reason);
 
-			const status = this._discordClient.status;
+			const status = this._discordClient.ws.status;
 
 			if (typeof status !== "number" || status < 3) {
 				let str = "Not handling the disconnect event: ";
