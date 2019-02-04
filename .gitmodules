@@ -10,3 +10,6 @@
 [submodule "src/cogs/verify"]
 	path = src/cogs/verify
 	url = git@github.com:Sasha-Sorokin/alphaid-bot-verify.git
+[submodule "src/cogs/voice-role"]
+	path = src/cogs/voice-role
+	url = git@github.com:Sasha-Sorokin/alphaid-bot-voice-role.git
