@@ -108,6 +108,23 @@ async function renameConfig(configPath: string, type: "errored" | "old") {
 }
 
 /**
+ * Checks whether path does exist or not
+ * @param path Path to check
+ * @returns `true` if path exists, otherwise `false`
+ */
+async function doesExist(path: string) {
+	try {
+		await fs.access(path);
+
+		return true;
+	} catch (err) {
+		if (err.code !== "ENOENT") throw err;
+
+		return false;
+	}
+}
+
+/**
  * Writes config to the file
  * @param i Module's private interface to obtain config information from
  * @param config Config object
@@ -121,10 +138,16 @@ export async function saveInstant<T>(i: ModulePrivateInterface<any>, config: T, 
 
 	const configFilePath = i.getConfigFilePath(opts.configName, opts.format);
 
-	try {
-		await fs.access(configFilePath);
+	const configDirPath = path.dirname(configFilePath);
 
-		await renameConfig(configFilePath, "old");
+	try {
+		if (!(await doesExist(configDirPath))) {
+			await fs.mkdir(configDirPath, { recursive: true });
+		}
+
+		if (await doesExist(configFilePath)) {
+			await renameConfig(configFilePath, "old");
+		}
 	} catch (err) {
 		if (err.code !== "ENOENT") throw err;
 	}
