@@ -7,3 +7,6 @@
 [submodule "src/cogs/dnSERV"]
 	path = src/cogs/dnSERV
 	url = git@github.com:dnserv-reborn/dnserv-alphaid-bot.git
+[submodule "src/cogs/verify"]
+	path = src/cogs/verify
+	url = git@github.com:Sasha-Sorokin/alphaid-bot-verify.git
