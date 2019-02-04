@@ -14,7 +14,7 @@ export function initializationMethod<T>(_target: ModuleBase<T>, _key: string, de
 			throw new Error(ErrorMessages.NOT_PENDING_INITIALIZATION);
 		}
 
-		return originalFunc.call(this, arguments);
+		return originalFunc.apply(this, arguments);
 	};
 
 	return descriptor;
@@ -32,7 +32,7 @@ export function unloadMethod<T>(_target: ModuleBase<T>, _key: string, descriptor
 			throw new Error(ErrorMessages.NOT_PENDING_UNLOAD);
 		}
 
-		return originalFunc.call(this, arguments);
+		return originalFunc.apply(this, arguments);
 	};
 
 	return descriptor;
