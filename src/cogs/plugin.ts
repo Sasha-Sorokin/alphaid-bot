@@ -158,11 +158,11 @@ export class Plugin {
 	constructor(events: IEventsMap<any>, dontAutoHandle = false) {
 		this._eventsMap = events;
 		if (!dontAutoHandle) {
-			this.handleEvents();
+			this._handleEvents();
 		}
 	}
 
-	protected handleEvents() {
+	protected _handleEvents() {
 		const keys = Object.keys(this._eventsMap);
 
 		for (let i = 0, l = keys.length; i < l; i++) {
@@ -180,7 +180,7 @@ export class Plugin {
 		}
 	}
 
-	protected unhandleEvents() {
+	protected _unhandleEvents() {
 		const keys = Object.keys(this._eventsMap);
 
 		for (let i = 0, l = keys.length; i < l; i++) {
