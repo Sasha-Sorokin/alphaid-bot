@@ -58,7 +58,7 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 
 		instanceInitialized = true;
 
-		this.handleEvents();
+		this._handleEvents();
 	}
 
 	private async _onMessage(msg: Message) {
@@ -275,7 +275,6 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 
 		if (!guildPrefixes) {
 			this._log("info", `#list: prefixAllInstance.getPrefixes(${msg.guild.id}): Returned none prefixes!`);
-			// hello something
 
 			return msg.channel.send({
 				embed: await i18n.generateLocalizedEmbed(EmbedType.Error, msgAuthor, "PREFIXALL_PREFIX_LIST_NONE")
@@ -310,7 +309,7 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 	}
 
 	public async unload() {
-		this.unhandleEvents();
+		this._unhandleEvents();
 		instanceInitialized = false;
 
 		return true;
