@@ -94,7 +94,7 @@ export function parse(str: string, options?: IParseOptions): ICommandParseResult
 
 	// If there is no `nextIndex` set means there is no arguments
 	// No sence of calling .length on argsStr
-	if (nextIndex !== 1) {
+	if (nextIndex !== -1) {
 		args = [];
 
 		const argSplitResult = argumentSplit(
@@ -138,7 +138,7 @@ export function parse(str: string, options?: IParseOptions): ICommandParseResult
 			? argsGenerator(args, argsStr)
 			: null,
 		content: subCommand
-			? `${subCommand}${argsStr || ""}`
+			? `${subCommand}${` ${argsStr}` || ""}`
 			: ""
 	};
 }
