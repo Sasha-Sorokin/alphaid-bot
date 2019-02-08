@@ -4,6 +4,9 @@ import { ModulePrivateInterface } from "./PrivateInterface";
 
 type InitializationFunction<T> = (i?: ModulePrivateInterface<T>) => Promise<void>;
 
+/**
+ * Wraps an initialization method with pending state check
+ */
 export function initializationMethod<T>(_target: ModuleBase<T>, _key: string, descriptor: TypedPropertyDescriptor<InitializationFunction<T>>) {
 	const originalFunc = descriptor.value;
 
@@ -22,6 +25,9 @@ export function initializationMethod<T>(_target: ModuleBase<T>, _key: string, de
 
 type UnloadFunction<T> = (i?: ModulePrivateInterface<T>, reason?: string) => Promise<boolean>;
 
+/**
+ * Wraps an unload method with pending state check
+ */
 export function unloadMethod<T>(_target: ModuleBase<T>, _key: string, descriptor: TypedPropertyDescriptor<UnloadFunction<T>>) {
 	const originalFunc = descriptor.value;
 
