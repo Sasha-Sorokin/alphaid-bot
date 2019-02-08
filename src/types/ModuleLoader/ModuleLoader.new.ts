@@ -8,7 +8,9 @@ import * as semver from "semver";
 
 // #region Interfaces and enums
 
-
+/**
+ * Configuration for the module loader
+ */
 export interface IModuleLoaderConfig {
 	/**
 	 * Module Loader name used in logs
@@ -61,6 +63,9 @@ export class ModuleLoader {
 	 */
 	private readonly _keepers: INullableHashMap<ModuleKeeper<any>> = Object.create(null);
 
+	/**
+	 * Logger function
+	 */
 	private readonly _log: logger.ILogFunction;
 
 	constructor(config: IModuleLoaderConfig) {
