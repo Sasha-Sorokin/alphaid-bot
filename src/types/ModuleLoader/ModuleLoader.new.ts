@@ -1,5 +1,4 @@
 import { INullableHashMap } from "@sb-types/Types";
-import { ISchemaObject, InterfaceSchema } from "@sb-types/Typer";
 import * as logger from "loggy";
 import * as path from "path";
 import * as Interfaces from "@sb-types/ModuleLoader/Interfaces.new";
@@ -9,22 +8,6 @@ import * as semver from "semver";
 
 // #region Interfaces and enums
 
-export const SCHEMA_MODULEINFO: ISchemaObject = {
-	type: "object",
-	isArray: true,
-	elementSchema: {
-		type: "object",
-		schema: <InterfaceSchema<Interfaces.IModuleInfo>> {
-			"name": { type: "string" },
-			"version": { type: "string" },
-			"main": { type: "string" },
-			"dependencies": {
-				type: "object",
-				isObject: true
-			}
-		}
-	}
-};
 
 export const MODNAME_REGEXP = /^[a-z\_.\-0-9]{0,32}$/;
 
