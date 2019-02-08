@@ -28,17 +28,38 @@ export function objectToMap<T>(obj: IHashMap<T>) {
 	return map;
 }
 
-export function escapeDiscordMarkdown(str: string, usernames: boolean = false) {
+interface IEscapingOptions {
+	unsafeUnderlines?: boolean;
+	squareBrackets?: boolean;
+	spoilers?: boolean;
+}
+
+const DEFAULT_ESCAPING_OPTIONS: IEscapingOptions = {
+	unsafeUnderlines: false,
+	squareBrackets: false,
+	spoilers: true
+};
+
+export function escapeDiscordMarkdown(str: string, options = DEFAULT_ESCAPING_OPTIONS) {
 	str = replaceAll(str, "`", "'");
 	str = replaceAll(str, "*", "\\*");
-	str = replaceAll(str, "[", "\\[");
-	str = replaceAll(str, "]", "\\]");
+	str = replaceAll(str, "~~", "\\~\\~");
 
-	if (usernames) {
+	if (options.squareBrackets) {
+		str = replaceAll(str, "[", "\\[");
+		str = replaceAll(str, "]", "\\]");
+	}
+
+	if (options.spoilers) {
+		str = replaceAll(str, "||", "\\|\\|");
+	}
+
+	if (options.unsafeUnderlines) {
 		str = replaceAll(str, "_", "\\_");
 	} else {
 		str = replaceAll(str, " _", " \\_");
 		str = replaceAll(str, "_ ", "\\_ ");
+		str = replaceAll(str, "__", "\\_\\_");
 	}
 
 	return str;
