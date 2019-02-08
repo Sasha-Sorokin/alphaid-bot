@@ -407,10 +407,10 @@ const DEFAULT_ROLE_RESOLVE_OPTIONS: IResolveOptions = {
 
 export const SNOWFLAKE_REGEXP = /^[0-9]{16,20}$/;
 
-export function resolveGuildRole(nameOrId: string, guild: Guild, options?: Partial<IResolveOptions>) {
-	if (SNOWFLAKE_REGEXP.test(nameOrId)) {
+export function resolveGuildRole(query: string, guild: Guild, options?: Partial<IResolveOptions>) {
+	if (SNOWFLAKE_REGEXP.test(query)) {
 		// can be ID
-		const role = guild.roles.get(nameOrId);
+		const role = guild.roles.get(query);
 		if (role) { return role; }
 	}
 
@@ -423,7 +423,7 @@ export function resolveGuildRole(nameOrId: string, guild: Guild, options?: Parti
 	};
 
 	if (!caseStrict) {
-		nameOrId = nameOrId.toLowerCase();
+		query = query.toLowerCase();
 	}
 
 	const roles = guild.roles.array();
@@ -434,14 +434,14 @@ export function resolveGuildRole(nameOrId: string, guild: Guild, options?: Parti
 		const roleName = (caseStrict ? role.name : role.name.toLowerCase());
 
 		if (strict) {
-			if (roleName === nameOrId) {
+			if (roleName === query) {
 				return role;
 			}
 
 			continue;
 		}
 
-		if (roleName.includes(nameOrId)) {
+		if (roleName.includes(query)) {
 			return role;
 		}
 	}
@@ -474,7 +474,7 @@ const DEFAULT_CHANNEL_RESOLVE_OPTIONS: IGuildChannelResolveOptions = {
 
 const CHANNEL_MENTION_SNOWFLAKE = /^\<\#([0-9]{16,20})\>$/;
 
-export function resolveGuildChannel(nameOrID: string, guild: Guild, options?: Partial<IGuildChannelResolveOptions>) {
+export function resolveGuildChannel(query: string, guild: Guild, options?: Partial<IGuildChannelResolveOptions>) {
 	const {
 		strict,
 		caseStrict,
@@ -486,20 +486,20 @@ export function resolveGuildChannel(nameOrID: string, guild: Guild, options?: Pa
 	};
 
 	if (possibleMention) {
-		const res = CHANNEL_MENTION_SNOWFLAKE.exec(nameOrID);
+		const res = CHANNEL_MENTION_SNOWFLAKE.exec(query);
 		if (res && res[1]) {
 			const channel = guild.channels.get(res[1]);
 			if (channel) { return channel; }
 		}
 	}
 
-	if (SNOWFLAKE_REGEXP.test(nameOrID)) {
-		const ch = guild.channels.get(nameOrID);
+	if (SNOWFLAKE_REGEXP.test(query)) {
+		const ch = guild.channels.get(query);
 		if (ch) { return ch; }
 	}
 
 	if (!caseStrict) {
-		nameOrID = nameOrID.toLowerCase();
+		query = query.toLowerCase();
 	}
 
 	const channels = guild.channels.array();
@@ -512,14 +512,14 @@ export function resolveGuildChannel(nameOrID: string, guild: Guild, options?: Pa
 		const channelName = caseStrict ? channel.name : channel.name.toLowerCase();
 
 		if (strict) {
-			if (channelName === nameOrID) {
+			if (channelName === query) {
 				return channel;
 			}
 
 			continue;
 		}
 
-		if (channelName.includes(nameOrID)) {
+		if (channelName.includes(query)) {
 			return channel;
 		}
 	}
@@ -566,7 +566,6 @@ const DEFAULT_MEMBER_RESOLVE_OPTIONS: IGuildMemberResolveOptions = {
 	fetch: false
 };
 
-export async function resolveGuildMember(nameOrID: string, guild: Guild, options?: Partial<IGuildMemberResolveOptions>): Promise<GuildMember | undefined> {
 	const {
 		strict,
 		caseStrict,
@@ -578,20 +577,20 @@ export async function resolveGuildMember(nameOrID: string, guild: Guild, options
 	};
 
 	if (possibleMention) {
-		const res = USER_MENTION_SNOWFLAKE.exec(nameOrID);
+		const res = USER_MENTION_SNOWFLAKE.exec(query);
 		if (res && res[1]) {
 			const member = await safeMemberFetch(guild, res[1]);
 			if (member) { return member; }
 		}
 	}
 
-	if (SNOWFLAKE_REGEXP.test(nameOrID)) {
-		const member = safeMemberFetch(guild, nameOrID);
+	if (SNOWFLAKE_REGEXP.test(query)) {
+		const member = safeMemberFetch(guild, query);
 		if (member) { return member; }
 	}
 
 	if (!caseStrict) {
-		nameOrID = nameOrID.toLowerCase();
+		query = query.toLowerCase();
 	}
 
 	let tagParts_discrim: undefined | string = undefined;
@@ -601,11 +600,11 @@ export async function resolveGuildMember(nameOrID: string, guild: Guild, options
 	let isTag = false;
 
 	{
-		const hashIndex = nameOrID.lastIndexOf("#");
+		const hashIndex = query.lastIndexOf("#");
 		if (hashIndex !== -1) {
-			const username = nameOrID.slice(0, hashIndex).replace(/\@/g, "");
+			const username = query.slice(0, hashIndex).replace(/\@/g, "");
 			if (username.length > 0) { tagParts_username = username; }
-			tagParts_discrim = nameOrID.slice(hashIndex + 1);
+			tagParts_discrim = query.slice(hashIndex + 1);
 			isTag = true;
 		}
 	}
@@ -636,12 +635,12 @@ export async function resolveGuildMember(nameOrID: string, guild: Guild, options
 
 		switch (strict) {
 			case true: {
-				if ((nickname && nickname === nameOrID) || username === nameOrID) {
+				if ((nickname && nickname === query) || username === query) {
 					return member;
 				}
 			} break;
 			case false: {
-				if ((nickname && (nickname.indexOf(nameOrID) !== -1)) || (username.indexOf(nameOrID) !== -1)) {
+				if ((nickname && (nickname.indexOf(query) !== -1)) || (username.indexOf(query) !== -1)) {
 					return member;
 				}
 			} break;
