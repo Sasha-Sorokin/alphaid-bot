@@ -9,6 +9,7 @@ const LOG = getLogger("ModuleDiscoveryUtils");
  * List subdirectories in the provided directory
  * @param directory Directory to list subdirectories of
  * @returns An array of pathes to subdirectories
+ * @ignore
  */
 export async function subdirectories(directory: string) {
 	LOG("verbose", `Searching subdirectories: "${directory}"`);
@@ -32,6 +33,7 @@ export async function subdirectories(directory: string) {
  * Safely reads the file
  * @param fileName File to read
  * @returns The file content or undefined
+ * @ignore
  */
 export async function safeRead(fileName: string) {
 	LOG("verbose", `Safely read: "${fileName}"`);
@@ -51,6 +53,7 @@ export async function safeRead(fileName: string) {
  * Safely loads the YAML
  * @param content YAML string to parse
  * @returns Parsed object or `undefined`
+ * @ignore
  */
 export async function safeLoadYAML<T>(content: string) : Promise<T | undefined> {
 	LOG("verbose", `Safely load YAML: ${content.length} chars`);
@@ -83,6 +86,7 @@ export function normalizeFileName(fileName: string, origin: string) {
  * @param path Path to check
  * @param origin Origin of the path
  * @throws Throws an error if path does not belong to the specified origin
+ * @ignore
  */
 export async function pathPrecaution(path: string, origin: string) {
 	if (!path.startsWith(origin) || path === origin) {

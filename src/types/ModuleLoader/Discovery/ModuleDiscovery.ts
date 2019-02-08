@@ -9,6 +9,7 @@ const LOG = getLogger("ModuleDiscovery");
 
 /**
  * Directory routing
+ * @ignore
  */
 export interface IRouting {
 	/**
@@ -16,10 +17,12 @@ export interface IRouting {
 	 */
 	path: string[];
 }
+
 /**
  * Searches the modules within the directory
  * @param directory Directory to look up for modules
  * @returns Discovered modules within the subdirectories of directory
+ * @ignore
  */
 export async function build(directory: string) {
 	const subdirectories = await discoveryUtils.subdirectories(directory);
