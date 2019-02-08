@@ -712,8 +712,8 @@ export function resolveEmojiMap(emojis: INullableHashMap<string>, store: GuildEm
 }
 
 export async function getMessageMember(msg: Message): Promise<GuildMember | undefined> {
-	if (msg.channel.type !== "text") { return undefined; }
-	if (msg.webhookID) { return undefined; } // webhooks
+	if (msg.channel.type !== "text") return undefined;
+	if (msg.webhookID) return undefined; // webhooks
 
 	let member = msg.member;
 
@@ -722,22 +722,19 @@ export async function getMessageMember(msg: Message): Promise<GuildMember | unde
 			try {
 				member = await msg.guild.members.fetch(msg.author);
 			} catch (err) {
-				if (err instanceof DiscordAPIError) {
-					return undefined;
-				}
-
 				return undefined;
 			}
-
-		} else { return undefined; }
+		} else {
+			return undefined;
+		}
 	}
 
 	return member;
 }
 
 export async function getMessageMemberOrAuthor(msg: Message): Promise<GuildMember | User | undefined> {
-	if (msg.channel.type !== "text") { return msg.author; }
-	else if (msg.webhookID) { return undefined; }
+	if (msg.channel.type !== "text") return msg.author;
+	else if (msg.webhookID) return undefined;
 
 	return getMessageMember(msg);
 }
