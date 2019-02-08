@@ -1,6 +1,6 @@
 import { Guild, GuildMember, GuildEmojiStore, Message, DiscordAPIError, User } from "discord.js";
 import { replaceAll } from "@utils/text";
-import { INullableHashMap } from "@sb-types/Types";
+import { INullableHashMap, IHashMap } from "@sb-types/Types";
 import * as getLogger from "loggy";
 
 export function stringifyError(err: Error, filter = null, space = 2) {
@@ -19,7 +19,7 @@ export function colorNumberToHex(color) {
 	return `${hex}`.toUpperCase();
 }
 
-export function objectToMap<T>(obj) {
+export function objectToMap<T>(obj: IHashMap<T>) {
 	const map = new Map<string, T>();
 	for (const key of Object.keys(obj)) {
 		map.set(key, obj[key]);
