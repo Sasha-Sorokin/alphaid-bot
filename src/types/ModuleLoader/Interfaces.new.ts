@@ -53,12 +53,6 @@ export interface IModuleInfo {
 	dependencies: INullableHashMap<string>;
 }
 
-export interface IRouting {
-	/**
-	 * Pathes to modules in current directory
-	 */
-	path: string[];
-}
 
 /**
  * Returns a state of module initialization
