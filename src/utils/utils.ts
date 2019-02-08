@@ -1,10 +1,18 @@
-import { Guild, GuildMember, GuildEmojiStore, Message, DiscordAPIError, User } from "discord.js";
+import { Guild, GuildMember, GuildEmojiStore, Message, User } from "discord.js";
 import { replaceAll } from "@utils/text";
 import { INullableHashMap, IHashMap } from "@sb-types/Types";
-import * as getLogger from "loggy";
 
+/**
+ * Stringifies JS Error to the JSON
+ * @param err Error to stringify
+ * @param filter JSON filter
+ * @param space Number of spaces or string to use for indentantion
+ * @deprecated This method is deprecated an will be removed in future
+ * @returns JSON for the passed Error object
+ */
 export function stringifyError(err: Error, filter = null, space = 2) {
-	const plainObject = {};
+	const plainObject = Object.create(null);
+
 	for (const key of Object.getOwnPropertyNames(err)) {
 		plainObject[key] = err[key];
 	}
@@ -12,13 +20,26 @@ export function stringifyError(err: Error, filter = null, space = 2) {
 	return JSON.stringify(plainObject, filter, space);
 }
 
-export function colorNumberToHex(color) {
+/**
+ * Converts color integer to the HEX code
+ * @param color Color integer to convert
+ * @returns Padded HEX color from the integer
+ * @example
+ * colorNumberToHex(role.color)
+ * // => "ffff00"
+ */
+export function colorNumberToHex(color: number) {
 	let hex = color.toString(16);
-	while (hex.length < 6) { hex = `0${hex}`; }
+
+	while (hex.length < 6) hex = `0${hex}`;
 
 	return `${hex}`.toUpperCase();
 }
 
+/**
+ * Converts object to the ES6 Map
+ * @param obj Object to convert
+ */
 export function objectToMap<T>(obj: IHashMap<T>) {
 	const map = new Map<string, T>();
 	for (const key of Object.keys(obj)) {
@@ -28,9 +49,28 @@ export function objectToMap<T>(obj: IHashMap<T>) {
 	return map;
 }
 
+/**
+ * Options for the `escapeDiscordMarkdown` function
+ */
 interface IEscapingOptions {
+	/**
+	 * Whether to escape underlines safely or not
+	 * 
+	 * Escaping safely means that only double, starting and
+	 * ending underlines will be escaped. On the other hand
+	 * unsafe method escapes **any** underline characters instead
+	 */
 	unsafeUnderlines?: boolean;
+	/**
+	 * Whether to escape square brackets or not
+	 * 
+	 * Square brackets are used for the links in webhook
+	 * messages and the inside embeds
+	 */
 	squareBrackets?: boolean;
+	/**
+	 * Whether to escape spoiler tokens (`||`) or not
+	 */
 	spoilers?: boolean;
 }
 
@@ -40,6 +80,18 @@ const DEFAULT_ESCAPING_OPTIONS: IEscapingOptions = {
 	spoilers: true
 };
 
+/**
+ * Escapes string from the following Discord markdown:
+ * - Backquotes for code
+ * - Asterisks for bold and italic fonts
+ * - Underlines (with safe and unsafe method)
+ * - Vertical pipes for spoiler tags
+ * - Double tlide for striken through text
+ * 
+ * Beware that escaping may increase string lenght
+ * @param str String to escape
+ * @param underlines Whether to escape underlines or not
+ */
 export function escapeDiscordMarkdown(str: string, options = DEFAULT_ESCAPING_OPTIONS) {
 	str = replaceAll(str, "`", "'");
 	str = replaceAll(str, "*", "\\*");
@@ -65,24 +117,72 @@ export function escapeDiscordMarkdown(str: string, options = DEFAULT_ESCAPING_OP
 	return str;
 }
 
+/**
+ * Type of the embed decorations
+ */
 export const enum EmbedType {
+	/**
+	 * Embed will have a red color and “no entry” sign (🚫) as icon
+	 */
 	Error = "error",
+	/**
+	 * Embed will have a green color and check mark as icon
+	 */
 	OK = "ok",
+	/**
+	 * Embed will have a sky blue color and “i” letter as icon
+	 */
 	Information = "information",
+	/**
+	 * Embed will have a dark blue color and question mark as icon
+	 */
 	Progress = "progress",
+	/**
+	 * Embed will not be decorated at all
+	 */
 	Empty = "empty",
+	/**
+	 * Embed will have a green color, check mark as icon and party party popper emoji (🎉) as small thumbnail
+	 */
 	Tada = "tada",
+	/**
+	 * Embed will have a blue color and question mark as icon
+	 */
 	Question = "question",
+	/**
+	 * Embed will have an yellow color, exclamation mark as icon and small thumbnail
+	 */
 	Warning = "warning"
 }
 // customFooter?:string
 
+/**
+ * Field in the embed
+ */
 export interface IEmbedOptionsField {
+	/**
+	 * Name of the field shown at the top
+	 * 
+	 * Maximum 32 characters
+	 */
 	name: string;
+	/**
+	 * Value of the field
+	 * 
+	 * Maximum 256 characters
+	 */
 	value: string;
+	/**
+	 * Whether field must be shown at the same line or on the following one
+	 * 
+	 * Only three field can be put on the same line with maximum size of the client's window
+	 */
 	inline?: boolean;
 }
 
+/**
+ * General options for the embed
+ */
 export interface IEmbedOptions {
 	/**
 	 * Text to show in footer
@@ -90,6 +190,7 @@ export interface IEmbedOptions {
 	footerText?: string;
 	/**
 	 * Footer options
+	 * 
 	 * Overrides `footerText` option
 	 */
 	footer?: {
@@ -108,6 +209,7 @@ export interface IEmbedOptions {
 	color?: number;
 	/**
 	 * Author to show in embed
+	 * 
 	 * Replaces `author` provided by selected `EmbedType`
 	 */
 	author?: {
@@ -133,35 +235,35 @@ export interface IEmbedOptions {
 	 */
 	title?: string;
 	/**
-	 * If `type` is ` 0`, replaces default "Error" string with this
+	 * If `type` is `error`, replaces default "Error" string with value of this property
 	 */
 	errorTitle?: string;
 	/**
-	 * If `type` is `1`, replaces default "Success!" string with this
+	 * If `type` is `ok`, replaces default "Success!" string with value of this property
 	 */
 	okTitle?: string;
 	/**
-	 * If `type` is `2`, replaces default "Information" string with this
+	 * If `type` is `informative`, replaces default "Information" string with value of this property
 	 */
 	informationTitle?: string;
 	/**
-	 * If `type` is `5`, replaces default "Tada!" string with this
+	 * If `type` is `tada`, replaces default "Tada!" string with value of this property
 	 */
 	tadaTitle?: string;
 	/**
-	 * If `type` is `3`, replaces default "Loading..." string with this
+	 * If `type` is `progress`, replaces default "Loading..." string with value of this property
 	 */
 	progressTitle?: string;
 	/**
-	 * If `type` is `6`, replaces default "Confirmation..." string with this
+	 * If `type` is `question`, replaces default "Confirmation..." string with value of this property
 	 */
 	questionTitle?: string;
 	/**
-	 * If `type` is `7`, replaces default "Warning!" string with this
+	 * If `type` is `warning`, replaces default "Warning!" string with value of this property
 	 */
 	warningTitle?: string;
 	/**
-	 * Replaces default string of any type of embeds with this
+	 * Replaces default string of any type of embed with value of this property
 	 */
 	universalTitle?: string;
 	/**
@@ -191,6 +293,10 @@ export interface IEmbedOptions {
 	ts?: Date;
 }
 
+/**
+ * Generated embed
+ * @ignore
+ */
 export interface IEmbed {
 	title?: string;
 	description?: string;
@@ -228,16 +334,43 @@ export interface IEmbed {
 	fields?: IEmbedOptionsField[];
 }
 
+/**
+ * Icon for the embed based on type
+ */
 export const enum EmbedIcon {
+	/**
+	 * Red no entry sign on white background
+	 */
 	Error = "https://i.imgur.com/tNDFOYI.png",
+	/**
+	 * White “i” letter on sky blue background
+	 */
 	Information = "https://i.imgur.com/AUIYOy6.png",
+	/**
+	 * White check mark on green background
+	 */
 	OK = "https://i.imgur.com/MX3EPo8.png",
+	/**
+	 * Rotating gears on grey background
+	 */
 	Progress = "https://i.imgur.com/Lb04Jg0.gif",
+	/**
+	 * Dark question mark on grey background
+	 */
 	Question = "https://i.imgur.com/lujOhUw.png",
+	/**
+	 * Black question mark on yellow background
+	 */
 	Warning = "https://i.imgur.com/Ga60TCT.png",
+	/**
+	 * Party popper on transparent background
+	 */
 	Tada = "https://i.imgur.com/ijm8BHV.png"
 }
 
+/**
+ * Title for the embed based on type
+ */
 export const enum EmbedTitle {
 	Error = "Error",
 	Information = "Information",
@@ -248,15 +381,42 @@ export const enum EmbedTitle {
 	Warning = "Warning!"
 }
 
+/**
+ * Embed color based on type
+ */
 export const enum EmbedColor {
+	/**
+	 * Red color
+	 */
 	Error = 0xDD2E44,
+	/**
+	 * Sky blue color
+	 */
 	Information = 0x3B88C3,
+	/**
+	 * Green color
+	 */
 	OK = 0x77B255,
+	/**
+	 * Blue color
+	 */
 	Progress = 0x546E7A,
+	/**
+	 * Grey color
+	 */
 	Question = 0xCCD6DD,
+	/**
+	 * Yellow color
+	 */
 	Warning = 0xFFCC4D
 }
 
+/**
+ * Generates a fancy stylized embed by pre-defined parameters
+ * @param type Type of the embed
+ * @param description Description to put after title
+ * @param options Additional options for the embed
+ */
 export function generateEmbed(type: EmbedType, description: string | undefined, options?: IEmbedOptions) {
 	const embed: any = {};
 
@@ -412,6 +572,13 @@ const DEFAULT_ROLE_RESOLVE_OPTIONS: IResolveOptions = {
 
 export const SNOWFLAKE_REGEXP = /^[0-9]{16,20}$/;
 
+/**
+ * Solves the query to the guild role
+ * @param query Name of the role or it's ID
+ * @param guild Guild which role to resolve
+ * @param options Options for the resolving
+ * @returns Guild role or `undefined` if no matches found
+ */
 export function resolveGuildRole(query: string, guild: Guild, options?: Partial<IResolveOptions>) {
 	if (SNOWFLAKE_REGEXP.test(query)) {
 		// can be ID
@@ -479,6 +646,13 @@ const DEFAULT_CHANNEL_RESOLVE_OPTIONS: IGuildChannelResolveOptions = {
 
 const CHANNEL_MENTION_SNOWFLAKE = /^\<\#([0-9]{16,20})\>$/;
 
+/**
+ * Resolves the query to the guild channel
+ * @param query Name of the channel or its ID
+ * @param guild Guild which channel to resolve
+ * @param options Options for the resolving
+ * @returns Guild channel or `undefined` if no matches found
+ */
 export function resolveGuildChannel(query: string, guild: Guild, options?: Partial<IGuildChannelResolveOptions>) {
 	const {
 		strict,
@@ -571,6 +745,14 @@ const DEFAULT_MEMBER_RESOLVE_OPTIONS: IGuildMemberResolveOptions = {
 	fetch: false
 };
 
+/**
+ * Resolves the query to the guild member
+ * @param query Username / nickname of the member or its ID
+ * @param guild Guild which member to resolve
+ * @param options Options for the resolving
+ * @returns Guild member or `undefined` if no matches found
+ */
+export async function resolveGuildMember(query: string, guild: Guild, options?: Partial<IGuildMemberResolveOptions>): Promise<GuildMember | undefined> {
 	const {
 		strict,
 		caseStrict,
@@ -655,7 +837,12 @@ const DEFAULT_MEMBER_RESOLVE_OPTIONS: IGuildMemberResolveOptions = {
 	return undefined;
 }
 
-
+/**
+ * Pretty prints the user's name
+ * @param user User which name to pretty print
+ * @param includeTag Whether should be user tag included or not
+ * @param includeAt Whether should be name prefixed with `@` or not
+ */
 export function getUserDisplayName(user: GuildMember | User, includeTag = false, includeAt = false) : string {
 	let displayName: string;
 
@@ -678,6 +865,16 @@ export function getUserDisplayName(user: GuildMember | User, includeTag = false,
 	return displayName;
 }
 
+/**
+ * Sets timeout before resolving the promise
+ * @param delay Time before the Promise will be resolved
+ * @param value Value to resolve promise with
+ * @returns Passed `value`
+ * @example
+ * const helloWorld = await sleep(1000, "Hello, world!");
+ * // After one second:
+ * // => "Hello, world!"
+ */
 export function sleep<T>(delay: number = 1000, value?: T): Promise<T> {
 	return new Promise<T>((resolve) => {
 		setTimeout(() => {
@@ -686,8 +883,23 @@ export function sleep<T>(delay: number = 1000, value?: T): Promise<T> {
 	});
 }
 
+/**
+ * Resolves a map of the emoji ID to the map of emoji strings to use
+ * @param emojis Map of the emoji IDs to resolve
+ * @param store Store to resolve emojis from
+ * @param strict Whether to throw or not an error if emoji not found or ID is incorrect
+ * @returns Hash map of resolved emojis for actual use
+ * @example
+ * resolveEmojiMap({ silly: "1234567890123456" }, $discordBot.emojis, true)
+ * // => { silly: "<:sillyFace:1234567890123456>" }
+ * // or
+ * // Error: Emoji with ID "1234567890123456" by key "silly" not found
+ * resolveEmojiMap({ foolingAround: "you tried" }, $discordBot.emojis, true)
+ * // Error: Invalid Emoji ID provided by key "foolingAround" - "you tried"
+ */
 export function resolveEmojiMap(emojis: INullableHashMap<string>, store: GuildEmojiStore, strict = true): INullableHashMap<string> {
 	const resolvedEmojisMap = Object.create(null);
+
 	for (const emojiKey in emojis) {
 		const emojiId = emojis[emojiKey]!;
 
@@ -701,6 +913,7 @@ export function resolveEmojiMap(emojis: INullableHashMap<string>, store: GuildEm
 			if (strict) {
 				throw new Error(`Invalid Emoji ID provided by key "${emojiKey}" - "${emojiId}"`);
 			}
+
 			continue;
 		}
 
@@ -716,6 +929,14 @@ export function resolveEmojiMap(emojis: INullableHashMap<string>, store: GuildEm
 	return resolvedEmojisMap;
 }
 
+/**
+ * Fetches the guild member who wrote the passed message
+ * @param msg Message received on the guild
+ * @returns
+ * - `undefined` if message created by hook or received from DM channel
+ * - `undefined` if message sent by unknown member that cannot be fetched from API
+ * - Guild member if message sent on the guild by the real member
+ */
 export async function getMessageMember(msg: Message): Promise<GuildMember | undefined> {
 	if (msg.channel.type !== "text") return undefined;
 	if (msg.webhookID) return undefined; // webhooks
@@ -737,6 +958,19 @@ export async function getMessageMember(msg: Message): Promise<GuildMember | unde
 	return member;
 }
 
+/**
+ * Fetches the author of message or guild member based
+ * on where message has been received from
+ * @param msg Message received in DM or a guild
+ * @returns
+ * - `undefined` if message created by hook
+ * - `undefined` if message sent by unknown author
+ * - `author` if message sent in DM channel
+ * - Possibly guild member
+ * @see getMessageMember The `getMessageMember` used if condition
+ * “not DM channel” and “not webhook” meet, look at it for details
+ * on how member is being resolved from message
+ */
 export async function getMessageMemberOrAuthor(msg: Message): Promise<GuildMember | User | undefined> {
 	if (msg.channel.type !== "text") return msg.author;
 	else if (msg.webhookID) return undefined;
