@@ -10,6 +10,9 @@ const INITIALIZATION_LOCKER = new WeakSet<ModuleKeeper<any>>();
 
 const PENDING_STATES = new WeakMap<ModuleKeeper<any>, "unload" | "initialization">();
 
+/**
+ * Alpaid's Module Loader
+ */
 export class ModuleKeeper<T> extends EventEmitter {
 	/**
 	 * Base information about module
@@ -20,6 +23,7 @@ export class ModuleKeeper<T> extends EventEmitter {
 
 	/**
 	 * Loaded module
+	 * 
 	 * Will be empty if module isn't loaded yet
 	 */
 	public get base() {
