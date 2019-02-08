@@ -691,8 +691,6 @@ export function resolveEmojiMap(emojis: INullableHashMap<string>, store: GuildEm
 	return resolvedEmojisMap;
 }
 
-const MESSAGES_LOG = getLogger("Utils:Utils#getMessageMember");
-
 export async function getMessageMember(msg: Message): Promise<GuildMember | undefined> {
 	if (msg.channel.type !== "text") { return undefined; }
 	if (msg.webhookID) { return undefined; } // webhooks
@@ -701,26 +699,16 @@ export async function getMessageMember(msg: Message): Promise<GuildMember | unde
 
 	if (!member) {
 		if (msg.author) {
-			MESSAGES_LOG("warn", `Detected uncached member with ID "${msg.author.id}", trying to fetch them...`);
 			try {
 				member = await msg.guild.members.fetch(msg.author);
 			} catch (err) {
 				if (err instanceof DiscordAPIError) {
-					switch (err.code) {
-						case 10007: 
-							MESSAGES_LOG("err", `User with ID "${msg.author.id}" is not member of the server`);
-						case 10013: 
-							MESSAGES_LOG("err", `User with ID "${msg.author.id}" is not real Discord user`);
-					}
-
 					return undefined;
 				}
 
-				MESSAGES_LOG("err", "Unknown error while fetching", err);
-
 				return undefined;
 			}
-			MESSAGES_LOG("ok", `Found member with ID "${msg.author.id}"`);
+
 		} else { return undefined; }
 	}
 
