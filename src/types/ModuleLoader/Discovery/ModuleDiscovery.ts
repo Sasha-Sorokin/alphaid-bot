@@ -1,4 +1,4 @@
-import { IModuleInfo, IRouting } from "../Interfaces.new";
+import { IModuleInfo } from "../Interfaces.new";
 import * as path from "path";
 import * as YAML from "js-yaml";
 import * as getLogger from "loggy";
@@ -7,6 +7,15 @@ import * as semver from "semver";
 
 const LOG = getLogger("ModuleDiscovery");
 
+/**
+ * Directory routing
+ */
+export interface IRouting {
+	/**
+	 * Pathes to modules in current directory
+	 */
+	path: string[];
+}
 /**
  * Searches the modules within the directory
  * @param directory Directory to look up for modules
