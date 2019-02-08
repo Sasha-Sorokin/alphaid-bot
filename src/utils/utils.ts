@@ -65,15 +65,15 @@ export function escapeDiscordMarkdown(str: string, options = DEFAULT_ESCAPING_OP
 	return str;
 }
 
-export enum EmbedType {
-	Error,
-	OK,
-	Information,
-	Progress,
-	Empty,
-	Tada,
-	Question,
-	Warning
+export const enum EmbedType {
+	Error = "error",
+	OK = "ok",
+	Information = "information",
+	Progress = "progress",
+	Empty = "empty",
+	Tada = "tada",
+	Question = "question",
+	Warning = "warning"
 }
 // customFooter?:string
 
@@ -228,116 +228,125 @@ export interface IEmbed {
 	fields?: IEmbedOptionsField[];
 }
 
-export const ICONS = {
-	ERROR: "https://i.imgur.com/tNDFOYI.png",
-	INFO: "https://i.imgur.com/AUIYOy6.png",
-	OK: "https://i.imgur.com/MX3EPo8.png",
-	PROGRESS: "https://i.imgur.com/Lb04Jg0.gif",
-	CONFIRMATION: "https://i.imgur.com/lujOhUw.png",
-	WARNING: "https://i.imgur.com/Ga60TCT.png",
-	TADA: "https://i.imgur.com/ijm8BHV.png"
-};
+export const enum EmbedIcon {
+	Error = "https://i.imgur.com/tNDFOYI.png",
+	Information = "https://i.imgur.com/AUIYOy6.png",
+	OK = "https://i.imgur.com/MX3EPo8.png",
+	Progress = "https://i.imgur.com/Lb04Jg0.gif",
+	Question = "https://i.imgur.com/lujOhUw.png",
+	Warning = "https://i.imgur.com/Ga60TCT.png",
+	Tada = "https://i.imgur.com/ijm8BHV.png"
+}
 
-export const enum COLORS {
-	ERROR = 0xDD2E44,
-	INFO = 0x3B88C3,
+export const enum EmbedTitle {
+	Error = "Error",
+	Information = "Information",
+	OK = "Success!",
+	Tada = "Tada!",
+	Progress = "Loading…",
+	Question = "Confirmation…",
+	Warning = "Warning!"
+}
+
+export const enum EmbedColor {
+	Error = 0xDD2E44,
+	Information = 0x3B88C3,
 	OK = 0x77B255,
-	PROGRESS = 0x546E7A,
-	CONFIRMATION = 0x3B88C3,
-	WARNING = 0xFFCC4D
+	Progress = 0x546E7A,
+	Question = 0xCCD6DD,
+	Warning = 0xFFCC4D
 }
 
 export function generateEmbed(type: EmbedType, description: string | undefined, options?: IEmbedOptions) {
 	const embed: any = {};
 
-	// embed pre-fill 
 	embed.author = {};
 	embed.description = description;
 
 	switch (type) {
 		case EmbedType.Error: {
-			embed.author.name = "Error";
-			embed.author.icon_url = ICONS.ERROR;
-			embed.color = COLORS.ERROR;
+			embed.author.name = (options && options.errorTitle)
+				|| EmbedTitle.Error;
+
+			embed.author.icon_url = EmbedIcon.Error;
+
+			embed.color = EmbedColor.Error;
 		} break;
 		case EmbedType.Information: {
-			embed.author.name = "Information";
-			embed.author.icon_url = ICONS.INFO;
-			embed.color = COLORS.INFO;
+			embed.author.name = (options && options.informationTitle)
+				|| EmbedTitle.Information;
+
+			embed.author.icon_url = EmbedIcon.Information;
+
+			embed.color = EmbedColor.Information;
 		} break;
 		case EmbedType.OK: {
-			embed.author.name = "Success!";
-			embed.author.icon_url = ICONS.OK;
-			embed.color = COLORS.OK;
+			embed.author.name = (options && options.okTitle)
+				|| EmbedTitle.OK;
+
+			embed.author.icon_url = EmbedIcon.OK;
+
+			embed.color = EmbedColor.OK;
 		} break;
 		case EmbedType.Tada: {
-			embed.author.name = "Tada!";
-			embed.author.icon_url = ICONS.OK;
+			embed.author.name = (options && options.tadaTitle)
+				|| EmbedTitle.Tada;
+
+			embed.author.icon_url = EmbedIcon.OK;
+
 			embed.thumbnail = {
-				url: ICONS.TADA
+				url: EmbedIcon.Tada
 			};
-			embed.color = COLORS.OK;
+
+			embed.color = EmbedColor.OK;
 		} break;
 		case EmbedType.Progress: {
-			embed.author.name = "Loading...";
-			embed.author.icon_url = ICONS.PROGRESS;
-			embed.color = COLORS.PROGRESS;
+			embed.author.name = (options && options.progressTitle)
+				|| EmbedTitle.Progress;
+
+			embed.author.icon_url = EmbedIcon.Progress;
+
+			embed.color = EmbedColor.Progress;
 		} break;
 		case EmbedType.Question: {
-			embed.author.name = "Confirmation...";
-			embed.author.icon_url = ICONS.CONFIRMATION;
-			embed.color = COLORS.CONFIRMATION;
+			embed.author.name = (options && options.questionTitle)
+				|| EmbedTitle.Question;
+
+			embed.author.icon_url = EmbedIcon.Question;
+
+			embed.color = EmbedColor.Question;
 		} break;
 		case EmbedType.Warning: {
-			embed.author.name = "Warning!";
-			embed.author.icon_url = ICONS.WARNING;
+			embed.author.name = (options && options.warningTitle)
+				|| EmbedTitle.Warning;
+
+			embed.author.icon_url = EmbedIcon.Warning;
+			
 			embed.thumbnail = {
-				url: ICONS.WARNING
+				url: EmbedIcon.Warning
 			};
-			embed.colors = COLORS.WARNING;
+
+			embed.colors = EmbedColor.Warning;
 		} break;
-		case EmbedType.Empty: break;
+		case EmbedType.Empty: {
+			embed.author = undefined;
+		} break;
 	}
 
 	if (options) {
-		if (options.title) {
-			embed.title = options.title;
-		}
+		if (options.title) embed.title = options.title;
 
-		if (options.fields) {
-			embed.fields = options.fields;
-		}
-
-		// this is fine
-		// https://media.giphy.com/media/3o6UBpHgaXFDNAuttm/giphy.gif
-
-		if (type === EmbedType.Error && options.errorTitle) {
-			embed.author.name = options.errorTitle;
-		} else if (type === EmbedType.Information && options.informationTitle) {
-			embed.author.name = options.informationTitle;
-		} else if (type === EmbedType.OK && options.okTitle) {
-			embed.author.name = options.okTitle;
-		} else if (type === EmbedType.Tada && options.tadaTitle) {
-			embed.author.name = options.tadaTitle;
-		} else if (type === EmbedType.Progress && options.progressTitle) {
-			embed.author.name = options.progressTitle;
-		} else if (type === EmbedType.Question && options.questionTitle) {
-			embed.author.name = options.questionTitle;
-		} else if (type === EmbedType.Warning && options.warningTitle) {
-			embed.author.name = options.warningTitle;
-		}
+		if (options.fields) embed.fields = options.fields;
 
 		if (options.universalTitle && embed.author) {
 			embed.author.name = options.universalTitle;
 		}
 
-		if (options.author) {
-			// full override
-			embed.author = options.author;
-		}
+		if (options.author) embed.author = options.author;
 
 		if (options.footer) {
 			embed.footer = options.footer;
+
 			if (options.footerText) {
 				embed.footer.text = options.footerText;
 			}
@@ -345,16 +354,14 @@ export function generateEmbed(type: EmbedType, description: string | undefined, 
 			embed.footer = {
 				text: options.footerText
 			};
-		} else if (type !== EmbedType.Empty) {
+		} else if (type !== EmbedType.Empty && $discordBot.user) {
 			embed.footer = {
-				text: $discordBot.user!.username,
-				icon_url: $discordBot.user!.displayAvatarURL({ format: "webp", size: 128 })
+				text: $discordBot.user.username,
+				icon_url: $discordBot.user.displayAvatarURL({ format: "webp", size: 128 })
 			};
 		}
 
-		if (options.clearFooter) {
-			embed.footer = undefined;
-		}
+		if (options.clearFooter) embed.footer = undefined;
 
 		if (options.imageUrl) {
 			embed.image = {
@@ -366,21 +373,19 @@ export function generateEmbed(type: EmbedType, description: string | undefined, 
 			embed.thumbnail = {
 				url: options.thumbUrl
 			};
+
 			if (options.thumbWidth && options.thumbWidth > 0) {
 				embed.thumbnail.width = options.thumbWidth;
 			}
+
 			if (options.thumbHeight && options.thumbHeight > 0) {
 				embed.thumbnail.height = options.thumbHeight;
 			}
 		}
 
-		if (options.color) {
-			embed.color = options.color;
-		}
+		if (options.color) embed.color = options.color;
 
-		if (options.ts) {
-			embed.timestamp = options.ts.toISOString();
-		}
+		if (options.ts) embed.timestamp = options.ts.toISOString();
 	}
 
 	return embed;
