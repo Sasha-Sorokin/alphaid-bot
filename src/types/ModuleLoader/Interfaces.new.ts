@@ -3,12 +3,17 @@ import { ModulePrivateInterface } from "./PrivateInterface";
 
 export type ModuleBase<T> = T & IModule<T>;
 
+/**
+ * Basic interface for all the ModuleLoader modules
+ */
 export interface IModule<T> {
 	/**
 	 * An optional async method of the initialization
 	 * 
 	 * Without this method module immediately phases into initialized state
 	 * @param i Private interface to interact with module keeper
+	 * @throws Throws an error if module is not pending initialization
+	 * @throws Throws an error if module has failed to initalize
 	 */
 	init?(i: ModulePrivateInterface<T>): Promise<void>;
 	/**
@@ -18,16 +23,24 @@ export interface IModule<T> {
 	 * 
 	 * The private interface will be also supplied within the initialization and unload states
 	 * @param i Private interface to interact with module keeper
+	 * @throws Throws an error if module has failed to construct
 	 */
 	supplyPrivateInterface?(i: ModulePrivateInterface<T>): void;
 	/**
 	 * A function that called to unload the modules to perform cleanup
 	 * @param reason Reason that caused module to unload
 	 * @param i Private interface to interact with module keeper
+	 * @returns Status of unloading
+	 * @throws Throws an error if module is not pending unload
+	 * @throws Throws an error if module has failed to unload
+	 * @todo Revise the requirement of boolean return
 	 */
 	unload(i: ModulePrivateInterface<T>, reason: string): Promise<boolean>;
 }
 
+/**
+ * Initial information about the module to load
+ */
 export interface IModuleInfo {
 	/**
 	 * Name of module
@@ -48,11 +61,12 @@ export interface IModuleInfo {
 	 */
 	entrypoint?: string;
 	/**
-	 * Names of the dependencies
+	 * All dependencies and their version
+	 * 
+	 * Optional dependencies version contain `?` at the end
 	 */
 	dependencies: INullableHashMap<string>;
 }
-
 
 /**
  * Returns a state of module initialization
