@@ -9,8 +9,6 @@ import * as semver from "semver";
 // #region Interfaces and enums
 
 
-export const MODNAME_REGEXP = /^[a-z\_.\-0-9]{0,32}$/;
-
 export interface IModuleLoaderConfig {
 	/**
 	 * Module Loader name used in logs
@@ -33,6 +31,21 @@ export interface IModuleLoaderConfig {
 // #region Module loader
 
 export class ModuleLoader {
+	/**
+	 * Module name regular expression:
+	 * 
+	 * - Name may only contain the following:
+	 *   - Latin letters (A-Z, case insensetive)
+	 *   - `_`, `-`, `.`
+	 *   - Any numbers
+	 * - Name should be 3-32 chars in length
+	 * 
+	 * **Good**: `announcer`, `myMod.plugin`
+	 * 
+	 * **Bad**: `my pretty annoncer`, `myMod/plugin`
+	 */
+	public static moduleNameRegexp = /^[a-z\_.\-0-9]{3,32}$/i;
+
 	/**
 	 * Basic configuration used at loader initialization
 	 */
@@ -77,10 +90,12 @@ export class ModuleLoader {
 		const checked: Interfaces.IModuleInfo[] = [];
 		const takenNames: string[] = [];
 
+		const modNameRegexp = ModuleLoader.moduleNameRegexp;
+
 		for (let i = 0, l = modules.length; i < l; i++) {
 			const mod = modules[i];
 
-			if (!MODNAME_REGEXP.test(mod.name)) {
+			if (!modNameRegexp.test(mod.name)) {
 				throw new Error(`Incorrect name - "${mod.name}"`);
 			}
 
