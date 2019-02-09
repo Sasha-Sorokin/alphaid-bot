@@ -2,8 +2,10 @@ FROM node:alpine
 
 ENV NODE_ENV production
 
-RUN apk add --update git && \
-    rm -rf /tmp/* /var/cache/apk/*
+RUN apk add --update git
+RUN apk add --update python
+RUN apk add --update build-base
+RUN rm -rf /tmp/* /var/cache/apk/*
 
 WORKDIR /opt/app
 
