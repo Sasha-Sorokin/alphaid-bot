@@ -99,12 +99,13 @@ export async function get<T>(owner: string, key: string, isJson = false, pop = f
 }
 
 export async function getArray<T>(owner: string, key: string, jsonParse: boolean | number = false, pop = false): Promise<T[]> {
+export async function getArray<T>(owner: string, key: string, jsonParse: boolean | number[] = false, pop = false): Promise<T> {
 	const redisClient = await getRedisClient();
 
 	const builtKey = buildCacheKey(owner, key);
-	let res = <any[]> await redisClient.lrange(builtKey, 0, -1);
+	let res = await redisClient.lrange(builtKey, 0, -1);
 
-	if (jsonParse) {
+	if (jsonParse != null) {
 		if (Array.isArray(jsonParse)) {
 			res = parseByIndexes<T>(res, jsonParse);
 		} else {
@@ -114,7 +115,7 @@ export async function getArray<T>(owner: string, key: string, jsonParse: boolean
 
 	if (pop) { await redisClient.del(builtKey); }
 
-	return res;
+	return <T> <unknown> res;
 }
 
 export async function deleteKeys(owner: string, keys: string | string[]) {
@@ -131,22 +132,34 @@ export async function deleteKeys(owner: string, keys: string | string[]) {
 	return redisClient.del(...keys);
 }
 
-function parseByIndexes<T>(arr: any[], parseIndexes: number[]) {
-	for (const index of parseIndexes) {
+function parseByIndexes<T>(arr: Array<unknown>, parseIndexes: number[]) : T {
+	for (let i = 0, l = parseIndexes.length; i < l; i++) {
+		const index = parseIndexes[i];
+
 		const elem = arr[index];
-		if (elem == null) { continue; }
+
+		if (typeof elem !== "string") {
+			throw new Error(`Element under the index ${index} is not string type`);
+		}
+
 		arr[index] = JSON.parse(elem);
 	}
 
-	return <T[]> arr;
+	return <T> <unknown> arr;
 }
 
-function parseArrayElements<T>(arr: any[]) {
-	for (let i = 0; i < arr.length; i++) {
-		arr[i] = JSON.parse(arr[i]);
+function parseArrayElements<T>(arr: Array<unknown>) {
+	for (let i = 0, l = arr.length; i < l; i++) {
+		const elem = arr[i];
+
+		if (typeof elem !== "string") {
+			throw new Error(`Element under the index ${i} is not string type`);
+		}
+
+		arr[i] = JSON.parse(elem);
 	}
 
-	return <T[]> arr;
+	return <T> <unknown> arr;
 }
 
 function stripUnnecessaryChars(str: string) {
