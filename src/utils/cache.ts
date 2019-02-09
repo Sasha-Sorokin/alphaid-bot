@@ -166,10 +166,12 @@ function stripUnnecessaryChars(str: string) {
 	return str.replace(/[^A-ZА-Я0-9\-\.\_\ \:]/ig, "").trim();
 }
 
-function lengthCheck(key: string, val: string) {
-	if (val.length < 1) { throw new Error(`Invalid-Length \`${key}\` provided: '${val}'`); }
+function lengthCheck(role: string, key: string) {
+	if (key.length < 1) {
+		throw new Error(`Invalid-Length \`${role}\` provided: '${key}'`);
+	}
 
-	return val;
+	return key;
 }
 
 function buildCacheKey(owner: string, key: string) {
