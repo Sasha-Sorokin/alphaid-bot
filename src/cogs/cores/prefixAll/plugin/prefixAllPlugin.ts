@@ -64,18 +64,18 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 	private async _onMessage(msg: Message) {
 		// TODO: the current method is extra costly, should attach instance to the events
 		// currently slighty optimizing this query by removing state checking
-		if (!this._prefixAllInterface) { return; }
+		if (!this._prefixAllInterface) return;
 
 		// for later usage and ensurance of non-null value of instance creating the constant
 		// (!) this is probably memory costly as it's getting executing for every message
 		const prefixAllInstance = this._prefixAllInterface.getBase();
-		if (!prefixAllInstance) { return undefined; } // no instance means errored loading, or invalid state
+		if (!prefixAllInstance) return; // no instance means errored loading, or invalid state
 
 		const prefix = await prefixAllInstance.checkPrefix(msg);
-		if (!prefix) { return undefined; } // prefix not found, returning
+		if (!prefix) return; // prefix not found, returning
 
 		const parsed = Command.parse(msg.content.slice(prefix.length));
-		if (parsed.command !== "prefix") { return undefined; } // checking if there's no command call
+		if (parsed.command !== "prefix") return; // checking if there's no command call
 
 		if (!parsed.subCommand) {
 			// if there's no subcommand then sending helpful message
@@ -111,7 +111,8 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 	}
 
 	private async subcmd_add(msg: Message, parsed: Command.ICommandParseResult, prefix: string, prefixAllInstance: PrefixAll) {
-		if (await this._isNotServer(msg)) { return; }
+		if (await this._isNotServer(msg)) return;
+
 		const cmd = `${prefix}${parsed.command}`;
 
 		if (!parsed.arguments) {
@@ -142,8 +143,7 @@ export class PrefixAllPlugin extends Plugin implements IModule<PrefixAllPlugin> 
 
 		const limitation = this._limitations.non_partners;
 
-		if (guildPrefixes.length >= limitation) { // inclusive
-
+		if (guildPrefixes.length >= limitation) {
 			return msg.channel.send({
 				embed: await i18n.generateLocalizedEmbed(EmbedType.Information, msg.member, {
 					key: "PREFIXALL_PREFIX_LIMITEXCEED",
