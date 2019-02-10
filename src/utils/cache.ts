@@ -178,5 +178,5 @@ function buildCacheKey(owner: string, key: string) {
 	owner = lengthCheck("owner", stripUnnecessaryChars(owner));
 	key = lengthCheck("key", stripUnnecessaryChars(key));
 
-	return `sb_cache:${owner}[${key}]`;
+	return `abot_cache:${owner}[${key}]`;
 }
