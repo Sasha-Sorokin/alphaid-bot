@@ -1,4 +1,5 @@
 {
     "lowercaseTypes": true,
-    "endWithDot": false
+    "endWithDot": false,
+    "scope": true
 }
