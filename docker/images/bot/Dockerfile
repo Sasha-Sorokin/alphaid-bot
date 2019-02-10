@@ -12,9 +12,9 @@ WORKDIR /opt/app
 COPY package.json /opt/app/
 COPY package-lock.json /opt/app
 
-RUN yarn install --production
+RUN npm i -d
 
-RUN yarn add full-icu
+RUN npm i -d full-icu
 ENV NODE_ICU_DATA node_modules/full-icu
 
 COPY . /opt/app
