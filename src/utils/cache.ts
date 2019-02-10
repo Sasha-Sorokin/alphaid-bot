@@ -1,41 +1,59 @@
 import { getRedisClient } from "@utils/redis";
 
+/**
+ * Default time to life for cache
+ * @ignore
+ */
 const DEFAULT_TTL = 30 * 60; // 30 min?
 
+/**
+ * Allowed cache types
+ * @ignore
+ */
 type AllowedTypes = string | number | object;
 
+/**
+ * Results of cache push
+ */
 interface IPushResults<T> {
 	/**
 	 * Returned value by redis
 	 */
 	value: T;
 	/**
-	 * Was it array pushed as list to the redis?
+	 * Whether was it pushed as array to the Redis or not
 	 */
 	isArray: boolean;
 	/**
-	 * If `JSON.stringify` was called at least one time to store the value, it will be `true`
+	 * Whether `JSON.stringify` was called at least once to store the value
 	 */
 	stringifyTriggered: boolean;
 	/**
-	 * If you passed an object to the array, this will identify the index of this element in redis list.
-	 * Will be undefined if none objects were converted to the JSON
+	 * If array has contained the objects, the indexes for which the `JSON.stringify`
+	 * was called. If never triggered, returns `undefined`
 	 */
 	stringifyTriggeredAt?: number[];
 	/**
-	 * We trying to built specific key in redis, so your data won't be messed up.
-	 * Keys are clean from many specific characters
+	 * Sanitized storage key
+	 * @see storeValue For the details about how key is sanitized, look at `storeValue` docs
 	 */
 	builtKey: string;
 }
 
 /**
- * **Stores value for some time by special key.**
- * Special key is generated based on owner and key. By default we strip many special characters, this can result an empty string (we check for it and will throw an error if this happens), so be smart picking the key and owner names :)
- * @param owner __Cache owner identifier__
- * @param key __Key which will be used next to the owner__, so this owner could have multiple valeus store.
- * @param value __Value to store in the database__. For JS objects `JSON.stringify` will be used, be aware
- * @param ttl __Time for what cache lives__ in the Redis DB (seconds)
+ * Stores value for some time by special key.
+ * 
+ * Special key is generated based on owner and key. By default many characters
+ * are stripped out of the owner and key names, this can result an empty string
+ * (if that happens, an error will be thrown), the allowed key characters are:
+ * - Latin and Russian letters (A-Z; А-Я; case-insensetive)
+ * - Numbers (0-9)
+ * - `-`, `_`, `.`, `:` and space
+ * @param owner Cache owner identifier
+ * @param key Key which will be used next to the owner, the owner can have multiple values store
+ * @param value Value to store in the database. For JS objects `JSON.stringify` is used
+ * @param ttl How much time cache will live in the Redis memory before deleted
+ * @returns Result of pushing to the cache storage
  */
 export async function storeValue<T>(owner: string, key: string, value: AllowedTypes | AllowedTypes[], ttl = DEFAULT_TTL): Promise<IPushResults<T>> {
 	const redisClient = await getRedisClient();
@@ -88,6 +106,13 @@ export async function storeValue<T>(owner: string, key: string, value: AllowedTy
 	}
 }
 
+/**
+ * Gets get
+ * @param owner Cache owner identifier
+ * @param key Key under what value was stored
+ * @param isJson Whether should be returned value parsed as JSON or not
+ * @param pop Remove the value from the cache storage after obtained
+ */
 export async function get<T>(owner: string, key: string, isJson = false, pop = false): Promise<T | null> {
 	const redisClient = await getRedisClient();
 
@@ -98,7 +123,14 @@ export async function get<T>(owner: string, key: string, isJson = false, pop = f
 	return isJson && res != null ? JSON.parse(res) : res;
 }
 
-export async function getArray<T>(owner: string, key: string, jsonParse: boolean | number = false, pop = false): Promise<T[]> {
+/**
+ * Gets a list from the Redis storage
+ * @param owner Cache owner identifier
+ * @param key Key under what value was stored
+ * @param jsonParse Whether to parse elements of array as JSON or not
+ * @param pop Whether must be value immediately deleted from the storage or net
+ * @returns An array of elements stored under the key
+ */
 export async function getArray<T>(owner: string, key: string, jsonParse: boolean | number[] = false, pop = false): Promise<T> {
 	const redisClient = await getRedisClient();
 
@@ -118,6 +150,12 @@ export async function getArray<T>(owner: string, key: string, jsonParse: boolean
 	return <T> <unknown> res;
 }
 
+/**
+ * Deletes specified keys from the Redis storage
+ * @param owner Cache owner identifier
+ * @param keys Keys to delete from the Redis storage
+ * @returns Number of keys that were removed
+ */
 export async function deleteKeys(owner: string, keys: string | string[]) {
 	const redisClient = await getRedisClient();
 
@@ -132,6 +170,12 @@ export async function deleteKeys(owner: string, keys: string | string[]) {
 	return redisClient.del(...keys);
 }
 
+/**
+ * Parses JSON elements under the specified indexes
+ * @param arr Array of elements
+ * @param parseIndexes Indexes under what to parse JSON
+ * @ignore
+ */
 function parseByIndexes<T>(arr: Array<unknown>, parseIndexes: number[]) : T {
 	for (let i = 0, l = parseIndexes.length; i < l; i++) {
 		const index = parseIndexes[i];
@@ -148,6 +192,11 @@ function parseByIndexes<T>(arr: Array<unknown>, parseIndexes: number[]) : T {
 	return <T> <unknown> arr;
 }
 
+/**
+ * Parses every alement of array as JSON
+ * @param arr Array of elements to parse
+ * @ignore
+ */
 function parseArrayElements<T>(arr: Array<unknown>) {
 	for (let i = 0, l = arr.length; i < l; i++) {
 		const elem = arr[i];
@@ -162,10 +211,22 @@ function parseArrayElements<T>(arr: Array<unknown>) {
 	return <T> <unknown> arr;
 }
 
+/**
+ * Strips all unknown characters to make clear Redis keys
+ * @param str String to strip from unknown characters
+ * @ignore
+ */
 function stripUnnecessaryChars(str: string) {
 	return str.replace(/[^A-ZА-Я0-9\-\.\_\ \:]/ig, "").trim();
 }
 
+/**
+ * Checks if the provided key is zero in lenght
+ * @param role Role that this key plays
+ * @param key Key to check for length
+ * @throws Throws an error if key has zero length
+ * @ignore
+ */
 function lengthCheck(role: string, key: string) {
 	if (key.length < 1) {
 		throw new Error(`Invalid-Length \`${role}\` provided: '${key}'`);
@@ -174,6 +235,12 @@ function lengthCheck(role: string, key: string) {
 	return key;
 }
 
+/**
+ * Creates a key based on owner and key itself to store in Redis
+ * @param owner Owner of the key
+ * @param key Key to add
+ * @ignore
+ */
 function buildCacheKey(owner: string, key: string) {
 	owner = lengthCheck("owner", stripUnnecessaryChars(owner));
 	key = lengthCheck("key", stripUnnecessaryChars(key));
