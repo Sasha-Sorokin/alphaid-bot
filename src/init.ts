@@ -5,7 +5,7 @@ import * as Bluebird from "bluebird";
 import { IBotConfig, IInternalBotConfig } from "@sb-types/SnowballBot";
 
 const CORE_INFO = {
-	"version": "0.9.9986"
+	"version": <string> require("./package.json").version
 };
 
 // Time until marking process as timed out and therefore killing it
@@ -32,8 +32,13 @@ const EXIT_ABORT_SIGNALS_TTL = 3000; // ms
 // tslint:disable-next-line:whitespace
 let SB: typeof import("@sb-types/SnowballBot");
 
-(async () => {
+let initialized = false;
 
+export async function init() {
+	if (initialized) throw new Error("The bot was already initalized");
+
+	initialized = true;
+	
 	let log = logger(":init");
 	logger.setAsync(false);
 
@@ -133,7 +138,7 @@ let SB: typeof import("@sb-types/SnowballBot");
 			return process.exit(1);
 		}
 	}
-})();
+}
 
 async function spawnShards(log: logger.ILogFunction, shardsCount: number) {
 	if (cluster.isWorker) {
@@ -296,7 +301,7 @@ async function initBot(log: logger.ILogFunction, config: IBotConfig, internalCon
 		log("info", "[Shutdown] We're stopping Snowball Bot, please wait a bit...");
 
 		try {
-			await snowball.shutdown(`shutdown: ${exitSignal}`);
+			await snowball.shutdown(`shutdown:${exitSignal}`);
 			process.exit(0);
 		} catch (err) {
 			log("err", "[Shutdown] Shutdown complete with an error", err);
@@ -323,39 +328,67 @@ async function initBot(log: logger.ILogFunction, config: IBotConfig, internalCon
 
 	process.on("uncaughtException", (err) => {
 		logger.setAsync(false);
-		log("err", "[Run] Error", err);
+
+		log("err", "[Run] Uncaught exception has occured:", err);
+
 		process.exit(1);
 	});
 
+	log("info", "[Run] Connecting to Discord...");
+
 	try {
-		log("info", "[Run] Connecting...");
 		await snowball.login();
-
-		log("ok", "[Run] Successfully connected, preparing our localizer...");
-		await snowball.prepareLocalizator();
-
-		logger.setAsync(false);
-
-		log("ok", "[Run] Localizer prepared, preparing module loader...");
-		await snowball.prepareModLoader();
-
-		log("ok", "[Run] Recalculating language coverages after modules loading...");
-		await $localizer.calculateCoverages(undefined, true);
-
-		log("ok", "[Run] ====== DONE ======");
-		isLoadingComplete = true;
+		
 	} catch (err) {
-		log("err", "[Run] Can't start bot", err);
-		log("err", "[Run] Exiting due we can't work without bot connected to Discord");
+		log("err", "[Run] Failed to connect:", err);
+
 		process.exit(1);
 	}
+	
+	log("ok", "[Run] Successfully connected, preparing our localizer...");
+
+	try {
+		await snowball.prepareLocalizator();
+	} catch (err) {
+		log("err", "[Run] Failed to prepare localizer:", err);
+
+		process.exit(1);
+	}
+
+	logger.setAsync(false);
+	
+	log("ok", "[Run] Localizer prepared, preparing module loader...");
+	
+	try {
+		await snowball.prepareModLoader();
+	} catch (err) {
+		log("err", "[Run] Failed to initialize mod loader...");
+
+		process.exit(1);
+	}
+	
+	log("ok", "[Run] Recalculating translations coverages after modules loading...");
+	
+	try {
+		await $localizer.calculateCoverages(undefined, true);
+	} catch (err) {
+		log("err", "Failed to re-calculate translations coverage:", err);
+
+		process.exit(1);
+	}
+
+	logger.setAsync(true);
+
+	isLoadingComplete = true;
+
+	log("ok", "[Run] ====== DONE ======");
 }
 
-async function prepare(log: logger.ILogFunction) {
+async function prepare(log: logger.ILogFunction = logger("init")) {
 	setupBluebird(log);
 }
 
-function prepareAliases(log: logger.ILogFunction) {
+export function prepareAliases(log: logger.ILogFunction = logger("init")) {
 	log("info", "[Import Aliases] Registering aliases for commont paths");
 
 	const aliasModule = require("module-alias");
@@ -372,7 +405,7 @@ function prepareAliases(log: logger.ILogFunction) {
 	log("ok", "[Import Aliases] Aliases registered");
 }
 
-function setupBluebird(log) {
+export function setupBluebird(log: logger.ILogFunction = logger("init")) {
 	log("info", "[Bluebird] Configuring bluebird");
 
 	Bluebird.config({
@@ -381,3 +414,5 @@ function setupBluebird(log) {
 		cancellation: true
 	});
 }
+
+if (!initialized && process.argv[1] === __filename) init();
