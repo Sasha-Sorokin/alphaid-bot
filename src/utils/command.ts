@@ -281,7 +281,6 @@ export function argumentSplit(str: string, separator = ",", enableQuotes = true)
 	return args;
 }
 
-
 /**
  * RegExp to check if the command is valid
  */
@@ -307,12 +306,10 @@ const UPPERCASE_REGEXP = /[A-Z]/;
  * this._redirector(commands.parse(msg));
  * ```
  */
-export function createRedirector<T = ICommandParseResult>(
-	redirects: RedirectsMap<T>,
-	options?: IRedirectorOptions
-): Redirector<T> {
+export function createRedirector<V = any>(redirects: RedirectsMap<V>, options?: IRedirectorOptions<V>): Redirector<V> {
 	options = {
 		ignoreCase: true,
+		basedOn: "command",
 		...options
 	};
 
@@ -332,36 +329,47 @@ export function createRedirector<T = ICommandParseResult>(
 		redirects[command.toLowerCase()] = redirect;
 	}
 
-	return (ctx) => {
-		let { command } = ctx;
+	return (ctx, val) => {
+		if (!options) return;
 
-		if (options && options.ignoreCase) {
-			command = command.toLowerCase();
+		let command = options.basedOn === "command"
+			? ctx.command
+			: ctx.subCommand;
+
+		if (command) {
+			if (options.ignoreCase) command = command.toLowerCase();
+
+			const callback = redirects[command];
+
+			if (callback) return callback(val, ctx);
 		}
 
-		const callback = redirects[command];
-
-		if (callback) {
-			return callback(ctx);
-		}
+		if (options.onRedirectFail) return options.onRedirectFail(val, ctx);
 	};
 }
 
-export type RedirectsMap<T> = INullableHashMap<RedirectorCallback<T>>;
-export type RedirectorCallback<T> = (ctx: RedirectorContext<T>) => any;
-export type RedirectorContext<T> = T & ICommandParseResult;
-export type Redirector<T> = (ctx: RedirectorContext<T>) => void;
+export type RedirectsMap<V> = INullableHashMap<RedirectorCallback<V>>;
+export type RedirectorCallback<V> = (val: V, ctx: ICommandParseResult) => any;
+export type Redirector<V> = (ctx: ICommandParseResult, val: V) => void;
 
-export interface IRedirectorOptions {
+export interface IRedirectorOptions<V> {
 	/**
-	 * What happens on the fail
-	 * @param ctx Context
+	 * Callback to call when redirection fails
+	 * @param val Passed value for the command
+	 * @param ctx Context that failed redirection
 	 */
-	onFail?(ctx): any;
+	onRedirectFail?(val: V, ctx: ICommandParseResult): any;
 	/**
-	 * Ignore case of the commands
+	 * Ignore character case of the commands
 	 */
 	ignoreCase?: boolean;
+	/**
+	 * What the redirected based on:
+	 * 
+	 * - `command` to redirect based on command
+	 * - `subcommand` to redirect based on subcommand
+	 */
+	basedOn: "command" | "subcommand";
 }
 
 export interface ICommandParseResult {
