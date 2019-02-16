@@ -281,26 +281,6 @@ export function argumentSplit(str: string, separator = ",", enableQuotes = true)
 	return args;
 }
 
-/**
- * "Redirects" command from message to needed handler
- * @param parsed Parsed message
- * @param redirects Handlers for the commands
- * @example
- * commandRedirect(parsed, { "ping": () => this._pingHandler(parsed) })
- * @deprecated This API will be removed soon, use `createRedirector` instead
- */
-export function commandRedirect(
-	parsed: ICommandParseResult,
-	redirects: RedirectsMap<ICommandParseResult>
-) {
-	const command = parsed.command;
-
-	const callback = redirects[command];
-
-	if (callback) {
-		return callback(parsed);
-	}
-}
 
 /**
  * RegExp to check if the command is valid
