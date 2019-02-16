@@ -253,8 +253,6 @@ export class MessagesFlows implements IModule<MessagesFlows> {
 	}
 
 	private async _executeMessageFlow(msg: Message) {
-		this._log("info", `[Flow:${msg.id}] Execution started...`);
-
 		const flowUnits = this._flowUnits;
 
 		const prefix = await this._getPrefix(msg);
@@ -271,8 +269,6 @@ export class MessagesFlows implements IModule<MessagesFlows> {
 				prefix,
 				simpleParserResult
 			);
-		} else {
-			this._log(`[Flow:${msg.id}] Prefix not found (${prefix})`);
 		}
 
 		// execute units
