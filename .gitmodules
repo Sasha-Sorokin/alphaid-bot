@@ -13,3 +13,6 @@
 [submodule "src/cogs/voice-role"]
 	path = src/cogs/voice-role
 	url = git@github.com:Sasha-Sorokin/alphaid-bot-voice-role.git
+[submodule "src/cogs/intl-preferences"]
+	path = src/cogs/intl-preferences
+	url = https://github.com/alphaid-bot/alphaid-bot-intl-preferences
