@@ -49,9 +49,6 @@ export class PrefixAll implements IModule<PrefixAll> {
 
 		this._defaultPrefix = cfg.defaultPrefix!;
 		this._messagesCacheDestructionTime = cfg.messagesCacheDestructionTime!;
-
-		// tslint:disable-next-line:no-console
-		console.log(this._defaultPrefix);
 	}
 
 	public async init() {
@@ -131,9 +128,6 @@ export class PrefixAll implements IModule<PrefixAll> {
 			// rare case, when absolutely no prefixes, even no default one
 			return this._cacheMessage(message, false);
 		}
-
-		// tslint:disable-next-line:no-console
-		console.log(guildPrefix);
 
 		const foundPrefix = guildPrefix.find(prefix => message.content.startsWith(prefix));
 
