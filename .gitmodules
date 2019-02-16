@@ -3,16 +3,16 @@
 	url = ../../snowball-dev-group/snowball-bot-8ball.git
 [submodule "src/cogs/reactionEventFix"]
 	path = src/cogs/reactionEventFix
-	url = git@github.com:Sasha-Sorokin/alphaid-bot-reactions-fix.git
+	url = ../../alphaid-bot/alphaid-bot-reactions-fix.git
 [submodule "src/cogs/dnSERV"]
 	path = src/cogs/dnSERV
-	url = git@github.com:dnserv-reborn/dnserv-alphaid-bot.git
+	url = ../../dnserv-reborn/dnserv-alphaid-bot.git
 [submodule "src/cogs/verify"]
 	path = src/cogs/verify
-	url = git@github.com:Sasha-Sorokin/alphaid-bot-verify.git
+	url = ../../alphaid-bot/alphaid-bot-verify.git
 [submodule "src/cogs/voice-role"]
 	path = src/cogs/voice-role
-	url = git@github.com:Sasha-Sorokin/alphaid-bot-voice-role.git
+	url = ../../alphaid-bot/alphaid-bot-voice-role.git
 [submodule "src/cogs/intl-preferences"]
 	path = src/cogs/intl-preferences
-	url = https://github.com/alphaid-bot/alphaid-bot-intl-preferences
+	url = ../../alphaid-bot/alphaid-bot-intl-preferences.git
