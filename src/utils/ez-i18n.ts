@@ -72,7 +72,7 @@ export function getPreferencesNames() {
 
 // #region Users API
 
-// #region   Localization / Getters
+// #region   Localization / Getters / Setters
 
 // #region     Localization
 
@@ -120,6 +120,26 @@ export async function getUserTimezone(user: UserIdentify) {
 	const cached = usersTimezonesCache[user.id];
 
 	return cached ? cached : forceUserTimezoneUpdate(user);
+}
+
+// #endregion
+
+// #region     Setters
+
+export async function setUserLanguage(user: UserIdentify, language: string) {
+	checkLanguage(language);
+
+	await UserPreferences.setPreferenceValue(user, PREFERENCE_USER_LANGUAGE, language);
+
+	usersCache[user.id] = language;
+}
+
+export async function setUserTimezone(user: UserIdentify, timezone: string) {
+	checkTimezone(timezone);
+
+	await UserPreferences.setPreferenceValue(user, PREFERENCE_USER_TIMEZONE, timezone);
+
+	usersTimezonesCache[user.id] = timezone;
 }
 
 // #endregion
@@ -183,9 +203,9 @@ export async function forceUserTimezoneUpdate(user: UserIdentify): Promise<strin
 
 // #region Guilds API
 
-// #region   Localization / Getters
+// #region   Localization / Getters / Setters
 
-// #region    Localization
+// #region     Localization
 
 export async function localizeForGuild(guild: Guild, str: string, formatOpts?: IFormatMessageVariables) {
 	const lang = await getGuildLanguage(guild);
@@ -212,7 +232,7 @@ export async function toGuildLocaleString(guild: Guild, date: Date | DateTime | 
 
 // #endregion
 
-// #region    Getters
+// #region     Getters
 
 export async function getGuildLanguage(guild: Guild) {
 	const cached = guildsCache[guild.id];
@@ -224,6 +244,32 @@ export async function getGuildTimezone(guild: Guild) {
 	const cached = guildTimezonesCache[guild.id];
 
 	return cached ? cached : forceGuildTimezoneUpdate(guild);
+}
+
+// #endregion
+
+// #region     Setters
+
+export async function setGuildLanguage(guild: Guild, language: string) {
+	checkLanguage(language);
+
+	await GuildPreferences.setPreferenceValue(guild, PREFERENCE_GUILD_LANGUAGE, language);
+
+	guildsCache[guild.id] = language;
+}
+
+export async function setGuildEnforce(guild: Guild, enforcing: boolean) {
+	await GuildPreferences.setPreferenceValue(guild, PREFERENCE_GUILD_ENFORCE, enforcing);
+
+	guildEnforceCache[guild.id] = enforcing;
+}
+
+export async function setGuildTimezone(guild: Guild, timezone: string) {
+	checkTimezone(timezone);
+
+	await GuildPreferences.setPreferenceValue(guild, PREFERENCE_GUILD_TIMEZONE, timezone);
+
+	guildTimezonesCache[guild.id] = timezone;
 }
 
 // #endregion
@@ -399,5 +445,21 @@ interface ICustomEmbedString {
 }
 
 // #endregion
+
+// #endregion
+
+// #region Util
+
+function checkLanguage(language: string) {
+	if ($localizer.languageExists(language)) return;
+
+	throw new Error(`Language "${language}" does not exist`);
+}
+
+function checkTimezone(timezone: string) {
+	if (intlAcceptsTimezone(timezone)) return;
+
+	throw new Error(`Timezone "${timezone}" is not acceptable`);
+}
 
 // #endregion
