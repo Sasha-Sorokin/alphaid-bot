@@ -315,12 +315,12 @@ function collectorCallback(authorId: string): (msg: Message) => boolean {
 
 //#endregion
 
-interface ICustomConfirmationRules {
-	// default predefine
-	max: number; maxEmojis: number; maxUsers: number;
-
-	variants: string[]; time: number;
-
+export interface ICustomConfirmationRules {
+	max: number;
+	maxEmojis: number;
+	maxUsers: number;
+	variants: string[];
+	time: number;
 	whoCanReact?: Array<User | GuildMember>;
 }
 
