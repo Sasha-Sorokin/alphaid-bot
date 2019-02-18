@@ -347,9 +347,12 @@ export async function createCustomConfirmationMessage(embed: IEmbed, channel: Te
 	});
 }
 
-interface ICustomWaitMessageOptions {
-	variants: string[]; time: number;
-	max?: number; maxMatches: number; authors: string[];
+export interface ICustomWaitMessageOptions {
+	variants: string[];
+	time: number;
+	max?: number;
+	maxMatches: number;
+	authors: string[];
 }
 
 export async function waitForMessages(channel: TextChannel | DMChannel, rules: ICustomWaitMessageOptions) {
