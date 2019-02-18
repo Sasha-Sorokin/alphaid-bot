@@ -3,19 +3,45 @@ import { getMessageMember, getMessageMemberOrAuthor, IEmbed } from "@utils/utils
 import * as Bluebird from "bluebird";
 import * as getLogger from "loggy";
 
+/**
+ * Logger for all the things that happen with module
+ * @todo Must be removed, no important data logged
+ * @ignore
+ */
 const LOG = getLogger("Utils:Interactive");
 
+/**
+ * Text for error if no `onCancel` value has been passed
+ * 
+ * Mostly that means that cancellation support was not enabled in Bluebird
+ * @ignore
+ */
 const ERR_INVALID_PROMISE = "Invalid promise, expected onCancel to be passed";
 
+/**
+ * Simple yes-no teller
+ * @param bool Boolean value
+ * @ignore
+ */
 function yesNo(bool: boolean) {
 	return bool ? "Yes" : "No";
 }
 
+/**
+ * Emoji for action
+ * @ignore
+ */
 const enum ActionReactionEmoji {
 	WHITE_CHECK_MARK = "✅",
 	RED_CROSS_MARK = "❌"
 }
 
+/**
+ * Creates confirmation message in response to other message
+ * @param embed Embed for the confirmation dialog
+ * @param originalMsg Original message for reference
+ * @returns Boolean value of whether confirmation dialog was accepted or not
+ */
 export function createConfirmationMessage(embed: IEmbed, originalMsg: Message): Bluebird<boolean> {
 	let logContext = `(CMS / 0:${originalMsg.id})`;
 
@@ -108,6 +134,11 @@ export function createConfirmationMessage(embed: IEmbed, originalMsg: Message): 
 	);
 }
 
+/**
+ * Creates a function to cancel Bluebird promise
+ * @param promise Promise to be cancelled
+ * @ignore
+ */
 function cancel<T>(promise: Bluebird<T>) {
 	return (val: T) => {
 		if (promise.isPending()) {
@@ -118,6 +149,11 @@ function cancel<T>(promise: Bluebird<T>) {
 	};
 }
 
+/**
+ * Gets members permissions in channel where message sent
+ * @param msg Message sent by member whose permission to get
+ * @ignore
+ */
 async function getPermissions(msg: Message) {
 	const member = await getMessageMember(msg);
 
@@ -130,6 +166,13 @@ async function getPermissions(msg: Message) {
 
 // #region Reaction Waiter
 
+/**
+ * Reacts to confirmation message with choises and waits for user's response
+ * @param confirmationMessage Confirmation message to react on
+ * @param authorId ID of the user whose reactions to message are accepted
+ * @returns Cancellable promise that resolves once user reacts with vaild emoji
+ * @ignore
+ */
 function reactionWaiter(confirmationMessage: Message, authorId: string): Bluebird<boolean> {
 	const logContext = `(RWT / ${confirmationMessage.id})`;
 
@@ -157,6 +200,14 @@ function reactionWaiter(confirmationMessage: Message, authorId: string): Bluebir
 	});
 }
 
+/**
+ * Creates a reaction collector for confirmation message and waits for
+ * a single reaction to be collected, then resolves with user's reaction
+ * @param confirmationMessage Confirmation message to create collector
+ * @param authorId ID of the user whose reactions to message are accepted
+ * @returns Cancellable promise that resolves with valid user's reaction collected
+ * @ignore
+ */
 function collectReaction(confirmationMessage: Message, authorId: string): Bluebird<MessageReaction | undefined> {
 	return new Bluebird(
 		(resolve, _reject, onCancel) => {
@@ -227,6 +278,13 @@ function collectReaction(confirmationMessage: Message, authorId: string): Bluebi
 
 //#region Message Waiter
 
+/**
+ * Waits for user's text message with text of `y` or `n`
+ * @param confirmationMessage Confirmation message for reference
+ * @param authorId ID of the user whose messages are accepted
+ * @returns Cancellable promis that resolves once user sends a valid message
+ * @ignore
+ */
 function messageWaiter(confirmationMessage: Message, authorId: string) {
 	const logContext = `(MWT / ${confirmationMessage.id})`;
 
@@ -247,10 +305,25 @@ function messageWaiter(confirmationMessage: Message, authorId: string) {
 	});
 }
 
+/**
+ * Reads content of message and returns boolean value of choice
+ * @param msg Message which content to read
+ * @returns `true` if message content is `y`, otherwise `false`
+ * @ignore
+ * @todo See if this can be deleted from code
+ */
 function messageToBool(msg: Message): boolean {
 	return msg.content === "y";
 }
 
+/**
+ * Creates a message collector for the channel where message was sent
+ * and waits for a single user's message to be collected, then resolves with message
+ * @param confirmationMessage Confirmation message for reference
+ * @param authorId ID of the user whose messages are accepted
+ * @returns Cancellale promise that resolves with user's message collected
+ * @ignore
+ */
 function collectMessage(confirmationMessage: Message, authorId: string) : Bluebird<Message | undefined> {
 	const logContext = `(MCL / ${confirmationMessage.id})`;
 
@@ -293,6 +366,12 @@ function collectMessage(confirmationMessage: Message, authorId: string) : Bluebi
 	});
 }
 
+/**
+ * Creates a callback for message collector to collect only message by the user
+ * @param authorId ID of the user whose messages are accepted
+ * @returns Callback for message collector to collect only message by the user
+ * @ignore
+ */
 function collectorCallback(authorId: string): (msg: Message) => boolean {
 	// load languages possibly
 
@@ -315,15 +394,43 @@ function collectorCallback(authorId: string): (msg: Message) => boolean {
 
 //#endregion
 
+/**
+ * Rules for the custom confirmation message
+ */
 export interface ICustomConfirmationRules {
+	/**
+	 * Maximum number of collected reactions
+	 */
 	max: number;
+	/**
+	 * Maximum number of emoji to collect
+	 */
 	maxEmojis: number;
+	/**
+	 * Maximum number of users to react
+	 */
 	maxUsers: number;
+	/**
+	 * Acceptable emoji names
+	 */
 	variants: string[];
+	/**
+	 * How much time will the collector run
+	 */
 	time: number;
+	/**
+	 * Arroy of users whose reactions are collected
+	 */
 	whoCanReact?: Array<User | GuildMember>;
 }
 
+/**
+ * Creates custom confirmation messase in the channel
+ * @param embed Embed for the confirmation dialog
+ * @param channel Channel where message will be sent
+ * @param rules Rules for reaction collection
+ * @returns Promise that resolves with collection of reactions
+ */
 export async function createCustomConfirmationMessage(embed: IEmbed, channel: TextChannel, rules: ICustomConfirmationRules) {
 	const _confirmationMessage = <Message> await channel.send({ embed });
 
@@ -353,14 +460,38 @@ export async function createCustomConfirmationMessage(embed: IEmbed, channel: Te
 	});
 }
 
+/**
+ * Rules for the message collection
+ */
 export interface ICustomWaitMessageOptions {
+	/**
+	 * Acceptable message contents
+	 */
 	variants: string[];
+	/**
+	 * How much time will collector run
+	 */
 	time: number;
+	/**
+	 * Maximum number of messages to collect
+	 */
 	max?: number;
+	/**
+	 * Maximum number of procceded messages
+	 */
 	maxMatches: number;
+	/**
+	 * ID of the users whose messages are allowed
+	 */
 	authors: string[];
 }
 
+/**
+ * Starts collecting the messages in the channel with custom rules
+ * @param channel Channel where to collect messages
+ * @param rules Rules for the message collection
+ * @returns Promise that resolves with collection of messages
+ */
 export async function waitForMessages(channel: TextChannel | DMChannel, rules: ICustomWaitMessageOptions) {
 	return channel.awaitMessages(
 		(msg: Message) => {
