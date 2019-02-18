@@ -324,7 +324,7 @@ interface ICustomConfirmationRules {
 	whoCanReact?: Array<User | GuildMember>;
 }
 
-export async function createCustomizeConfirmationMessage(embed: IEmbed, channel: TextChannel, rules: ICustomConfirmationRules) {
+export async function createCustomConfirmationMessage(embed: IEmbed, channel: TextChannel, rules: ICustomConfirmationRules) {
 	const _confirmationMessage = <Message> await channel.send({ embed });
 
 	try {
