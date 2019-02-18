@@ -75,21 +75,11 @@ function getTypeInfo(type: string) {
 	return t;
 }
 
-export namespace MySQL {
-	export type NumbericTypes = "TINYINT" | "SMALLINT" | "MEDIUMINT" | "INT" | "INTEGER" | "BIGINT" | "FLOAT" | "DOUBLE" | "DECIMAL" | "BIT";
-	export type DateTimeTypes = "YEAR" | "DATE" | "TIME" | "DATETIME" | "TIMESTAMP";
-	export type StringTypes = "CHAR" | "BINARY" | "VARCHAR" | "VARBINARY" | "TINYBLOB" | "TINYTEXT" | "BLOB" | "TEXT" | "MEDIUMBLOB" | "MEDIUMTEXT" | "LONGBLOB" | "LONGTEXT" | "ENUM" | "SET" | "BOOL" | "BOOLEAN";
-	export type AdditionalTypes = "JSON";
-	export type SpatialTypes = "GEOMETRY" | "POINT" | "LINESTRING" | "POLYGON" | "MULTIPOINT" | "MULTILINESTRING" | "MYLTIPOLYGON" | "GEOMETRYCOLLECTION";
-
-	export type AllTypes = NumbericTypes | DateTimeTypes | StringTypes | AdditionalTypes;
-}
-
 interface ITypeInfo {
 	unique?: boolean;
 	nullable?: boolean;
 	notNullable?: boolean;
-	type: MySQL.AllTypes | string;
+	type: string;
 	length?: number;
 	default?: string;
 	collate?: string;
@@ -97,7 +87,7 @@ interface ITypeInfo {
 }
 
 export interface ITableSchema {
-	[columnName: string]: MySQL.AllTypes | ITypeInfo | string;
+	[columnName: string]: ITypeInfo | string;
 }
 
 export async function createTableBySchema(tableName: string, schema: ITableSchema, dropExist = false) {
