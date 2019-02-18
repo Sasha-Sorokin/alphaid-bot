@@ -11,7 +11,7 @@ function yesNo(bool: boolean) {
 	return bool ? "Yes" : "No";
 }
 
-const enum EMOJI {
+const enum ActionReactionEmoji {
 	WHITE_CHECK_MARK = "✅",
 	RED_CROSS_MARK = "❌"
 }
@@ -139,8 +139,8 @@ function reactionWaiter(confirmationMessage: Message, authorId: string): Bluebir
 		try {
 			LOG("info", `${logContext} Add reactions to message`);
 
-			await confirmationMessage.react(EMOJI.WHITE_CHECK_MARK);
-			await confirmationMessage.react(EMOJI.RED_CROSS_MARK);
+			await confirmationMessage.react(ActionReactionEmoji.WHITE_CHECK_MARK);
+			await confirmationMessage.react(ActionReactionEmoji.RED_CROSS_MARK);
 		} catch (err) {
 			return false;
 		}
@@ -152,7 +152,7 @@ function reactionWaiter(confirmationMessage: Message, authorId: string): Bluebir
 		const res = await reactionCollection;
 
 		resolve(
-			res ? res.emoji.name === EMOJI.WHITE_CHECK_MARK : false
+			res ? res.emoji.name === ActionReactionEmoji.WHITE_CHECK_MARK : false
 		);
 	});
 }
