@@ -251,10 +251,10 @@ function messageToBool(msg: Message): boolean {
 	return msg.content === "y";
 }
 
-function collectMessage(confirmationMessage: Message, authorId: string) {
+function collectMessage(confirmationMessage: Message, authorId: string) : Bluebird<Message | undefined> {
 	const logContext = `(MCL / ${confirmationMessage.id})`;
 
-	return new Bluebird<Message>((resolve, _reject, onCancel) => {
+	return new Bluebird<Message | undefined>((resolve, _reject, onCancel) => {
 		if (!onCancel) { throw new Error(ERR_INVALID_PROMISE); }
 
 		LOG("info", `${logContext} Create the collector...`);
