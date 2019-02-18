@@ -344,6 +344,12 @@ export async function createCustomConfirmationMessage(embed: IEmbed, channel: Te
 		}
 
 		return true;
+	}, {
+		errors: ["time"],
+		max: rules.max,
+		maxEmojis: rules.maxEmojis,
+		maxUsers: rules.maxUsers,
+		time: rules.time
 	});
 }
 
