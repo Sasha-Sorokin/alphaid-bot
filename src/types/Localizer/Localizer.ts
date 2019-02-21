@@ -8,7 +8,7 @@ import * as Interfaces from "@sb-types/Localizer/HumanizerInterfaces";
 import { ILogFunction } from "loggy";
 import { InterfaceSchema } from "@sb-types/Typer";
 import { LocalizerParser } from "@sb-types/Localizer/LocalizerParser";
-import { LocalizerFileLoader, LangFileToCodeFunction, FilterType } from "@sb-types/Localizer/LocalizerFileLoader";
+import { LocalizerFileLoader, LangFileToCodeFunction, FilterFunc } from "@sb-types/Localizer/LocalizerFileLoader";
 import { LocalizerKeysAssignation } from "@sb-types/Localizer/LocalizerKeysAssignation";
 
 export interface ILocalizerOptions {
@@ -434,7 +434,7 @@ export class Localizer {
 	public async extendLanguages(
 		languagesTree: Types.IHashMap<Interfaces.IStringsMap | string> | string,
 		toLangCode?: LangFileToCodeFunction,
-		filter?: FilterType,
+		filter?: FilterFunc,
 		throwOnError = false
 	) {
 
