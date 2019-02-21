@@ -5,7 +5,6 @@ import { promises as fs } from "fs";
 import * as Interfaces from "@sb-types/Localizer/HumanizerInterfaces";
 import * as Types from "@sb-types/Types";
 import * as logger from "loggy";
-import * as micromatch from "micromatch";
 import * as path from "path";
 
 const PATH_SEP_LENGTH = path.sep.length;
@@ -79,19 +78,14 @@ export class LocalizerFileLoader {
 	 * @param filter Glob patterns or function that takes list of files and returns only true
 	 * @param throwOnError Throw error if reading of file in directory fails
 	 */
-	public async directoryToLanguagesTree(directory: string | string[], toLangCode?: LangFileToCodeFunction, filter?: FilterType, throwOnError = false) {
+	public async directoryToLanguagesTree(directory: string | string[], toLangCode?: LangFileToCodeFunction, filter?: FilterFunc, throwOnError = false) {
 		if (Array.isArray(directory)) {
 			directory = path.join(...directory);
 		}
 
 		let fileNames = await this.recursiveReadDirectory(directory);
 
-		if (filter) {
-			fileNames = typeof filter === "string" ||
-				Array.isArray(filter) ?
-					micromatch(fileNames, filter) :
-					filter(fileNames);
-		}
+		if (filter != null) fileNames = filter(fileNames);
 
 		if (!toLangCode) {
 			toLangCode = fileName => path.basename(
@@ -178,4 +172,4 @@ export class LocalizerFileLoader {
 }
 
 export type LangFileToCodeFunction = (filename: string, map: Interfaces.IStringsMap) => string;
-export type FilterType = ((filenames: string[]) => string[]) | string | string[];
+export type FilterFunc = (filenames: string[]) => string[];
