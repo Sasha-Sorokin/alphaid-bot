@@ -1,4 +1,4 @@
-import * as fs from "mz/fs";
+import { promises as fs } from "fs";
 import * as getLogger from "loggy";
 import * as knex from "knex";
 import * as path from "path";
