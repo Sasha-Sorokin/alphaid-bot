@@ -1,4 +1,3 @@
-import "any-promise/register/bluebird";
 import * as Humanizing from "@sb-types/Localizer/Humanizer";
 import * as Types from "@sb-types/Types";
 import * as path from "path";
