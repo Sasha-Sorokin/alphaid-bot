@@ -1,8 +1,8 @@
-import * as fs from "mz/fs";
+import { promises as fs } from "fs";
+import { INullableHashMap } from "@sb-types/Types";
 import * as path from "path";
 import * as knex from "knex";
 import * as getLogger from "loggy";
-import { INullableHashMap } from "@sb-types/Types";
 
 const ITEMS_TABLE_NAME = "ItemTable";
 
