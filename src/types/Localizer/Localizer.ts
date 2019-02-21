@@ -545,15 +545,11 @@ export class Localizer {
 			const lang = queue[i];
 			const langMap = this._langsMap[lang];
 
-			if (!langMap) {
-				throw new Error(`Language "${lang}" not found`);
-			}
+			if (!langMap) throw new Error(`Language "${lang}" not found`);
 
 			const foundStr = langMap[key];
 
-			if (foundStr && foundStr !== "") {
-				return foundStr;
-			}
+			if (foundStr && foundStr !== "") return foundStr;
 		}
 
 		const errStr = fallback ?
