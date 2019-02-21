@@ -1,11 +1,11 @@
 import { LocalizerParser } from "@sb-types/Localizer/LocalizerParser";
 import { LocalizerParsersCollection } from "@sb-types/Localizer/LocalizerParsersCollection";
 import { LocalizerJSONParser } from "@sb-types/Localizer/parsers/JSONParser";
+import { promises as fs } from "fs";
 import * as Interfaces from "@sb-types/Localizer/HumanizerInterfaces";
 import * as Types from "@sb-types/Types";
 import * as logger from "loggy";
 import * as micromatch from "micromatch";
-import * as fs from "mz/fs";
 import * as path from "path";
 
 const PATH_SEP_LENGTH = path.sep.length;
