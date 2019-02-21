@@ -179,7 +179,7 @@ export class Localizer {
 					path.extname(langFileName)
 				);
 
-				if (this._langsMap[langName]) {
+				if (langName in this._langsMap) {
 					throw new Error(`Language "${langFileName}" is already registered`);
 				}
 
@@ -202,7 +202,7 @@ export class Localizer {
 				for (let i = 0, l = META_KEYS.length; i < l; i++) {
 					requiredMetaKey = META_KEYS[i];
 
-					if (!stringsMap[requiredMetaKey]) {
+					if (!(requiredMetaKey in stringsMap)) {
 						rejectLoading = true;
 						break;
 					}
@@ -398,11 +398,11 @@ export class Localizer {
 				}
 			}
 
-			if (sourceLanguage && !sourceLanguage[key]) {
+			if (sourceLanguage && !(key in sourceLanguage)) {
 				this._log("warn", `"${key}" is not found in source language yet.`);
 			}
 
-			if (langMap[key]) {
+			if (key in langMap) {
 				if (keysAssignation.isAssigned(key)) {
 					this._log("warn", `Don't override key "${key}" in language "${langName}" as it bound by someone`);
 					continue;
@@ -504,7 +504,7 @@ export class Localizer {
 					);
 				}
 
-				langFile[key] = undefined; // null'ing
+				delete langFile[key];
 
 				_pruneResults.push(key);
 			}
