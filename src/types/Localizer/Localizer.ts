@@ -253,18 +253,20 @@ export class Localizer {
 	 * @param log Should it log to console the results of calculation
 	 * @returns Hash map where key is language name and value is percentage of 'coverage'
 	 */
-	public async calculateCoverages(langNames?: string[], log = false) {
+	public async calculateCoverages(langNames = Object.keys(this._langsMap), log = false) {
 		const results: Types.INullableHashMap<number> = Object.create(null);
 		const sourceLanguage = this._langsMap[this._sourceLang];
 
-		const keys = (langNames || this._langsMap);
+		for (let i = 0, l = langNames.length; i < l; i++) {
+			const langName = langNames[i];
 
-		for (const langName in keys) {
 			const langFile = this._langsMap[langName]!;
 
 			if (langName === this._sourceLang) {
 				langFile["+COVERAGE"] = "100";
+
 				results[langName] = 100;
+
 				continue;
 			}
 
@@ -308,6 +310,7 @@ export class Localizer {
 		const coverage = await this.testCoverage(langFile, (sourceLanguage || this._langsMap[this.sourceLanguage]), knownName);
 
 		langFile["+COVERAGE"] = `${coverage}`;
+
 		if (langFile["+COMMUNITY_MANAGED"] !== "true") { langFile["+COMMUNITY_MANAGED"] = "false"; }
 
 		if (log) { this._log("ok", `- ${langFile["+NAME"]} (${langFile["+COUNTRY"]}) - ${coverage}`); }
@@ -413,6 +416,7 @@ export class Localizer {
 			}
 
 			langMap[key] = value;
+
 			importedKeys.push(key);
 		}
 
