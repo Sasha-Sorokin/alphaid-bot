@@ -472,10 +472,10 @@ export class Localizer {
 
 			if (!langKeys) { continue; }
 
-			for (const key of langKeys) {
-				if (!importedKeys.includes(key)) {
-					importedKeys.push(key);
-				}
+			for (let i = 0, l = langKeys.length; i < l; i++) {
+				const key = langKeys[i];
+
+				if (!importedKeys.includes(key)) importedKeys.push(key);
 			}
 		}
 
@@ -500,7 +500,9 @@ export class Localizer {
 
 			if (!langFile) { continue; }
 
-			for (const key of keys) {
+			for (let i = 0, l = keys.length; i < l; i++) {
+				const key = keys[i];
+
 				if (keysAssignation.isAssigned(key)) {
 					this._log(
 						"info",
