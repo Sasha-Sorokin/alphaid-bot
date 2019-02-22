@@ -328,26 +328,28 @@ export class Localizer {
 	 * @param defaultLanguage Default language
 	 */
 	private async testCoverage(langFile: Interfaces.IStringsMap, defaultLanguage = this._langsMap[this._opts.sourceLanguage]!, _langName?: string) {
+		let total = 0;
 		let unique = 0;
 
+		const coverageDisabled = this._isCoverageDisabledFor(_langName);
+
 		for (const key in defaultLanguage) {
-			// ignored keys
-			if (DYNAMIC_META_KEYS.includes(key)) {
-				unique += 1;
+			total++;
+
+			if (DYNAMIC_META_KEYS.includes(key) || (typeof langFile[key] === "string" && langFile[key] !== "")) {
+				unique++;
+
 				continue;
 			}
+			
+			if (coverageDisabled) continue;
 
-			// "" for empty crowdin translations
-			if (typeof langFile[key] === "string" && langFile[key] !== "") {
-				unique += +1;
-			} else if (!this._isCoverageDisabledFor(_langName)) {
-				this._log("warn", `String "${key}" not translated in lang ${langFile["+NAME"]}`);
-			}
+			this._log("warn", `String "${key}" not translated in lang ${langFile["+NAME"]}`);
 		}
 
-		const coverage = (100 * (unique / Object.keys(defaultLanguage).length));
+		const coverage = (100 * (unique / total));
 
-		return Math.round(coverage * 1e2) / 1e2; // 99.99%
+		return Math.round(coverage * 100) / 100; // 99.99%
 	}
 
 	private readonly _coverageDisabledGlobally;
