@@ -534,6 +534,22 @@ export class Localizer {
 	}
 
 	/**
+	 * Gets all the keys for the selected language
+	 * 
+	 * **Warning**: This function is ineffective due to usage `Object.keys`,
+	 * inspect ways to avoid multiple calls of it
+	 * @param language Language which keys to obtain
+	 * @returns Keys of the prefered locale
+	 */
+	public getLanguageKeys(language: string) {
+		const langMap = this._langsMap[language];
+
+		if (langMap == null) throw new Error(`Language "${language}" not found`);
+
+		return Object.keys(langMap);
+	}
+
+	/**
 	 * Returns string from dictionary of translated strings of selected language
 	 * @param preferedLang Language to get string from
 	 * @param key Key in language dictionary
