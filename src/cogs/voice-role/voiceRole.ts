@@ -8,7 +8,7 @@ import { ModulePrivateInterface } from "@sb-types/ModuleLoader/PrivateInterface"
 import { createConfirmationMessage } from "@utils/interactive";
 import { initializationMethod, unloadMethod } from "@sb-types/ModuleLoader/Decorators";
 import { MessagesFlows, IMessageFlowContext, IPublicFlowCommand } from "@cogs/cores/messagesFlows/messagesFlows";
-import { generateLocalizedEmbed, localizeForGuild, localizeForUser } from "@utils/ez-i18n";
+import { generateLocalizedEmbed, localizeForGuild, localizeForUser, extendAndAssign } from "@utils/ez-i18n";
 import { EmbedType, resolveGuildRole, resolveGuildChannel, getMessageMember } from "@utils/utils";
 import { Message, Guild, Role, GuildMember, VoiceChannel, Collection, VoiceState } from "discord.js";
 import Verify from "@cogs/verify/verify";
@@ -83,6 +83,7 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 	private _flowHandler: IPublicFlowCommand;
 	private _verifyInterface?: ModulePublicInterface<Verify>;
 	private _verifyVerifiedHandler?: () => void;
+	private _i18nUnhandle?: () => void;
 
 	constructor() {
 		super({
@@ -150,6 +151,7 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 		if (!messagesFlowsKeeper) {
 			throw new Error("Cannot find `MessagesFlows` dependency");
 		}
+		this._i18nUnhandle = await extendAndAssign([__dirname, "i18n"], i);
 
 		messagesFlowsKeeper.onInit((mf) => {
 			return this._flowHandler = mf.watchForCommands(
@@ -1089,6 +1091,8 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 		this._flowHandler && this._flowHandler.unhandle();
 		this._unhandleEvents();
 
+
+		if (this._i18nUnhandle) this._i18nUnhandle();
 		return true;
 	}
 }

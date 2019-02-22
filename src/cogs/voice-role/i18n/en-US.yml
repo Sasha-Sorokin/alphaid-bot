@@ -1,0 +1,158 @@
+# Used as a title for the “voicerole set” subcommand
+VOICEROLE_META_SET: "Set Voice Role"
+
+# Used as a title for the “voicerole delete” subcommand
+VOICEROLE_META_DELETE: "Unset Voice Role"
+
+VOICEROLE_META_SET_ARG0: ", role"
+
+VOICEROLE_META_SET_ARG0_DESC: "role to set"
+
+# Used as a title for the “voicerole specific delete” subcommand
+VOICEROLE_META_SPECIFICDELETE: "Unset Specific Voice Role"
+
+VOICEROLE_META_SPECIFICDELETE_ARG0: "voice channel"
+
+VOICEROLE_META_SPECIFICDELETE_ARG0_DESC: "voice channel to unset specific role from"
+
+VOICEROLE_META_SPECIFICDELETE_ARG1_DESC: "role to unset"
+
+# Used as a title for the “voicerole specific set” subcommand
+VOICEROLE_META_SPECIFICSET: "Set Specific Voice Role"
+
+VOICEROLE_META_SPECIFICSET_ARG0: "voice channel"
+
+VOICEROLE_META_SPECIFICSET_ARG0_DESC: "voice channel to set specific role to"
+
+# Used as an audit log reason when user joins a voice channel and gets voice role assigned
+VOICEROLE_JOINED_VC: "Joined voice channel “{channelName}”"
+
+# Used as an audit log reason when user leaves a voice channel and gets voice role removed
+VOICEROLE_LEFT_VC: "Left channel “{channelName}”"
+
+# Used as an audit log reason when user joins the voice channel and gets specific role assigned
+VOICEROLE_SPECIFIC_ADDED: "Assign specific role for channel “{channelName}”"
+
+# Used as an audit log reason when user leaves the voice channel and gets specific role removed
+VOICEROLE_SPECIFIC_REMOVED: "Remove specific role for channel “{channelName}”"
+
+# Sent when user has no permission to execute the command
+VOICEROLE_NOPERMS: "⚠ Insufficient permissions to manage Voice Role on this server."
+
+# Used in the helpful message when user calls the “voicerole specific set” subcommand without the arguments
+VOICEROLE_SETTING_ARGINFO_SPECIFIC: |-
+  ◦ `channel` is a voice channel name or its ID
+  ◦ `role` is a role name or ID
+
+# Sent as a confirmation when user wants to remove a voice role
+# {role} (string) — name of the resolved role
+VOICEROLE_SETTING_CONFIRMATION_DELETE: |-
+  Unset the server voice role “{role}”?
+
+  {notice}
+
+# Sent as a confirmation when user wants to set a voice role
+# {role} (string) —  name of the resolved role
+VOICEROLE_SETTING_CONFIRMATION_SET: |-
+  Set role “{role}” as the voice role on this server?
+
+  Anyone who joins the voice channel on this server will be assigned this role. Role removed as soon as they leave any voice channel.
+
+# Used in the confirmations when unsetting a voice role (both specific and server-wide)
+VOICEROLE_SETTING_CONFIRMATIONS_NOTICE: "⚠ This role will be removed from all members."
+
+# Sent when user wants to remove voice role but it's already deleted on the server
+VOICEROLE_SETTING_FASTDELETE: "Voice Role unset immediately because it is already deleted."
+
+# Sent when user calls the “voicerole specific set” subcommand with invalid number of arguments
+VOICEROLE_SETTING_FAULT_ARGERR: "Invalid number of arguments. If role or channel names contain spaces, use IDs instead or unique part of the name."
+
+# Sent when user cancels action
+VOICEROLE_SETTING_FAULT_CANCELED: "Action canceled."
+
+# Sent when bot fails to find specified channel
+VOICEROLE_SETTING_FAULT_CHANNELERR: "Cannot find that channel. Try to use its ID or unique part of the name."
+
+# Sent when bot finds the channel of invalid type
+VOICEROLE_SETTING_FAULT_CHANNELTYPEERR: "Found a text-type channel. Specific role can be set only for voice channels."
+
+# Sent when bot fails to find the server settings
+VOICEROLE_SETTING_FAULT_DBGUILDNOTFOUND: "Cannot find guild settings in the database. Contact the bot administrator if this error persists."
+
+# Sent when bot is unable to save settings to the database
+VOICEROLE_SETTING_FAULT_DBSAVING: "Unable to save settings in the database."
+
+# Sent when user tries to remove a specific role from the voice channel but there's no role set already
+VOICEROLE_SETTING_FAULT_NOSPECIFICROLE: "No specific voice role set to that channel."
+
+# Sent when cleanup cycle fails after changing the settings
+VOICEROLE_SETTING_FAULT_ROLECLEANUP: "Cleanup cycle failure."
+
+# Sent when bot fails to find specified role
+VOICEROLE_SETTING_FAULT_ROLENOTFOUND: "Cannot find that role. Try to use its ID or unique part of the name."
+
+# Sent when bot is unable to sav… god, not again
+VOICEROLE_SETTING_FAULT_SAVING: "An error has occurred while saving the settings."
+
+# Sent when user calls the “voicerole” command without the arguments
+VOICEROLE_SETTING_HELP: |-
+  • `set [role]` — Set Voice Role
+  • `delete` — Unset Voice Role
+
+# Sent when user calls the “voicerole delete” subcommand with invalid number of arguments
+VOICEROLE_SETTING_HELP_DELETE: "• `delete` — Unset Voice Role"
+
+# Sent when user calls the “voicerole set” subcommand without the arguments
+VOICEROLE_SETTING_HELP_SET: |-
+  • `set [role]` — Set Voice Role
+    ◦ `role` — role name (unique part of it) or ID
+
+    ⚠ Only one voice role can be set for the server.
+
+# Sent when user calls the “voicerole specific” subcommand without the arguments
+VOICEROLE_SETTING_HELP_SPECIFIC: |-
+  • `specific set [channel], [role]` — Set Specific Voice Role
+  • `specific delete [channel]` — Unset Specific Voice Role
+
+# Sent when user calls the “voicerole specific delete” subcommand without the arguments
+VOICEROLE_SETTING_HELP_SPECIFIC_DELETE: "• `specific delete [channel]` — Unset Specific Voice Role"
+
+# Sent when user calls the “voicerole specific set” subcommand without the arguments
+VOICEROLE_SETTING_HELP_SPECIFIC_SET: |-
+  • `specific set [channel], [role]` — Set Specific Voice Role
+    ◦ `role` — role name (unique part of it) or ID
+
+  ⚠ Only one specific voice role can be set for the channel.
+
+# Used as a title for embed with available settings
+VOICEROLE_SETTING_HELP_TITLE: "Available settings"
+
+# Used when bot is saving the settings and cycling over the members list changing the roles
+VOICEROLE_SETTING_SAVING: "Saving settings and working on roles…"
+
+# Sent when specific voice role has been set
+VOICEROLE_SETTING_SAVING_DONE: "Specific Channel Role set."
+
+# Sent when voice role has been set
+VOICEROLE_SETTING_SETTINGDONE: "Voice Role set."
+
+# Sent as a confirmation when user wants to set a specific voice role
+# {role} (string) — name of the resolved role
+# {voiceChannel} (string) — name of the resolved voice channel
+VOICEROLE_SETTING_SPECIFIC_CONFIRMATION: |-
+  Set role “{role}” as the voice role for the channel “{voiceChannel}”?
+
+  ⚠ Anyone who joins “{voiceChannel}” will be assigned this role. Role removed as soon as they leave the channel.
+
+# Sent as a confirmation when user wants to unset the specific voice role
+# {notice} (string) — notice (see “VOICEROLE_SETTING_CONFIRMATIONS_NOTICE”)
+VOICEROLE_SETTING_SPECIFIC_DELETECONFIRMATION: |-
+  Unset role “{role}” from the channel “{voiceRole}”?
+
+  {notice}
+
+# Sent when user wants to unset the specific voice role but it is deleted already
+VOICEROLE_SETTING_SPECIFIC_FASTDELETE: "Specific Voice Role unset immediately because it is already deleted."
+
+# Sent when user has unset the specific voice role
+VOICEROLE_SETTING_SPEFIC_DELETED: "Specific Voice Role unset."
