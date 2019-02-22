@@ -527,10 +527,10 @@ export class Localizer {
 
 	/**
 	 * Checks if dictionary of selected language exists
-	 * @param lang Language to check
+	 * @param language Language to check
 	 */
-	public languageExists(lang: string) {
-		return !!this._langsMap[lang];
+	public languageExists(language: string) {
+		return language in this._langsMap;
 	}
 
 	/**
