@@ -1,0 +1,4 @@
+name: cleaner
+description: Clears unused resources after the module initialization completes
+version: "0.0.1"
+main: ./cleaner
