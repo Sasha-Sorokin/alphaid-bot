@@ -317,8 +317,6 @@ export class Localizer {
 
 		langFile["+COVERAGE"] = `${coverage}`;
 
-		if (langFile["+COMMUNITY_MANAGED"] !== "true") { langFile["+COMMUNITY_MANAGED"] = "false"; }
-
 		if (log) { this._log("ok", `- ${langFile["+NAME"]} (${langFile["+COUNTRY"]}) - ${coverage}`); }
 
 		return coverage;
