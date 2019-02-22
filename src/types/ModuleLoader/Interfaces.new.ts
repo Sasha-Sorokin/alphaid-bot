@@ -138,3 +138,30 @@ export const enum ModuleEvent {
 	 */
 	Failure = "error"
 }
+
+export const enum ModuleLoaderEvent {
+	/**
+	 * Before construction started
+	 */
+	BeforeConstruction = "beforeConstruction",
+	/**
+	 * After construction finished
+	 */
+	PostConstruction = "postContruction",
+	/**
+	 * Before initialization started
+	 */
+	BeforeInitialization = "beforeInitialization",
+	/**
+	 * After initialization finished
+	 */
+	PostInitialization = "postInitialization",
+	/**
+	 * Before unloading starts
+	 */
+	BeforeUnload = "beforeUnload",
+	/**
+	 * After unloading finished
+	 */
+	PostUnload = "unloaded"
+}
