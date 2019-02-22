@@ -70,6 +70,8 @@ export class ModuleLoader extends EventEmitter {
 	private readonly _log: logger.ILogFunction;
 
 	constructor(config: IModuleLoaderConfig) {
+		super();
+
 		this.config = config;
 		this._log = logger(config.name);
 
