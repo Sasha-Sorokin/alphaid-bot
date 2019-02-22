@@ -95,7 +95,10 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 
 	@initializationMethod
 	public async init(i: ModulePrivateInterface<VoiceRole>) {
-		this._log("info", "Checking table");
+		const messagesFlowsKeeper = i.getDependency<MessagesFlows>("messages-flows");
+
+		if (!messagesFlowsKeeper) throw new Error("Cannot find `MessagesFlows` dependency");
+
 
 		let dbStatus: boolean = false;
 
@@ -129,6 +132,7 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 			specificDBStatus = await this._db.schema.hasTable(SPECIFIC_TABLE_NAME);
 		} catch (err) {
 			$snowball.captureException(err);
+
 			this._log("err", "Error checking if specific table is created");
 
 			return;
@@ -146,11 +150,6 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 			}
 		}
 
-		const messagesFlowsKeeper = i.getDependency<MessagesFlows>("messages-flows");
-
-		if (!messagesFlowsKeeper) {
-			throw new Error("Cannot find `MessagesFlows` dependency");
-		}
 		this._i18nUnhandle = await extendAndAssign([__dirname, "i18n"], i);
 
 		messagesFlowsKeeper.onInit((mf) => {
