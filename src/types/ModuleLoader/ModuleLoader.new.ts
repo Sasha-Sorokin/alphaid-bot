@@ -5,6 +5,7 @@ import * as Interfaces from "@sb-types/ModuleLoader/Interfaces.new";
 import { ModuleKeeper } from "@sb-types/ModuleLoader/ModuleKeeper.new";
 import * as ModuleDiscovery from "./Discovery/ModuleDiscovery";
 import * as semver from "semver";
+import { EventEmitter } from "events";
 
 // #region Interfaces and enums
 
@@ -32,7 +33,7 @@ export interface IModuleLoaderConfig {
 
 // #region Module loader
 
-export class ModuleLoader {
+export class ModuleLoader extends EventEmitter {
 	/**
 	 * Module name regular expression:
 	 * 
@@ -260,6 +261,8 @@ export class ModuleLoader {
 	public async constructAll() {
 		this._log("verb", "Construction started");
 
+		this.emit(Interfaces.ModuleLoaderEvent.BeforeConstruction);
+
 		let constructedCount = 0;
 
 		for (const name in this._keepers) {
@@ -280,6 +283,8 @@ export class ModuleLoader {
 			constructedCount++;
 		}
 
+		this.emit(Interfaces.ModuleLoaderEvent.PostConstruction, constructedCount);
+
 		this._log("verb", `Construction done - ${constructedCount} modules constructed`);
 	}
 
@@ -289,6 +294,8 @@ export class ModuleLoader {
 	 */
 	public async initAll() {
 		this._log("verb", "Initialization started");
+
+		this.emit(Interfaces.ModuleLoaderEvent.BeforeInitialization);
 
 		let initializedCount = 0;
 
@@ -310,6 +317,8 @@ export class ModuleLoader {
 			initializedCount++;
 		}
 
+		this.emit(Interfaces.ModuleLoaderEvent.PostInitialization, initializedCount);
+
 		this._log("verb", `Initialization complete - ${initializedCount} modules initialized`);
 	}
 
@@ -319,6 +328,8 @@ export class ModuleLoader {
 	 */
 	public async unloadAll(reason = "modloader_default") {
 		this._log("verb", `Unloading started - ${reason}`);
+
+		this.emit(Interfaces.ModuleLoaderEvent.BeforeUnload, reason);
 
 		let unloadedCount = 0;
 
@@ -333,6 +344,8 @@ export class ModuleLoader {
 
 			unloadedCount++;
 		}
+
+		this.emit(Interfaces.ModuleLoaderEvent.PostUnload, reason, unloadedCount);
 
 		this._log("verb", `Unloading complete - ${unloadedCount} modules unloaded`);
 	}
