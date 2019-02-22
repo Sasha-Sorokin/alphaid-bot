@@ -82,7 +82,7 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 	private readonly _log = getLogger("VoiceRole");
 	private _flowHandler: IPublicFlowCommand;
 	private _verifyInterface?: ModulePublicInterface<Verify>;
-	private _verifyVerifiedHandler?: () => void;
+	private _verifyUnhandle?: () => void;
 	private _i18nUnhandle?: () => void;
 
 	constructor() {
@@ -168,7 +168,7 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 			this._verifyInterface = verifyInterface;
 
 			this._verifyInterface.onInit(verify => {
-				this._verifyVerifiedHandler = verify.onVerified(
+				this._verifyUnhandle = verify.onVerified(
 					(member) => this._onVCUpdated(member.voice, member.voice)
 				);
 			});
@@ -1087,12 +1087,14 @@ export class VoiceRole extends Plugin implements IModule<VoiceRole> {
 
 	@unloadMethod
 	public async unload() {
-		this._verifyVerifiedHandler && this._verifyVerifiedHandler();
-		this._flowHandler && this._flowHandler.unhandle();
+		if (this._verifyUnhandle) this._verifyUnhandle();
+
 		this._unhandleEvents();
 
+		if (this._flowHandler) this._flowHandler.unhandle();
 
 		if (this._i18nUnhandle) this._i18nUnhandle();
+
 		return true;
 	}
 }
