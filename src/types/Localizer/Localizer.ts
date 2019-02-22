@@ -36,7 +36,10 @@ export const SCHEMA_LOCALIZEROPTIONS: InterfaceSchema<ILocalizerOptions> = {
 
 const META_KEYS = ["+NAME", "+COUNTRY"];
 const DYNAMIC_META_KEYS = ["+COVERAGE"];
-const PRUNE_BANNED_KEYS = [...META_KEYS, ...DYNAMIC_META_KEYS];
+const HUMANIZER_META_KEYS = ["+HUMANIZE:DURATION:YEARS", "+HUMANIZE:DURATION:MONTHS", "+HUMANIZE:DURATION:WEEKS", "+HUMANIZE:DURATION:DAYS", "+HUMANIZE:DURATION:HOURS", "+HUMANIZE:DURATION:MINUTES", "+HUMANIZE:DURATION:SECONDS", "+HUMANIZE:DURATION:MILLISECONDS"];
+const PRUNE_BANNED_KEYS = [...META_KEYS, ...DYNAMIC_META_KEYS, ...HUMANIZER_META_KEYS];
+
+const OWNERSHIP = Symbol("LocalizerStrings");
 
 export class Localizer {
 	private readonly _opts: ILocalizerOptions;
@@ -144,9 +147,13 @@ export class Localizer {
 
 		// Creating key assignation
 
-		this._keysAssignation = new LocalizerKeysAssignation(
+		const keysAssignation = new LocalizerKeysAssignation(
 			`${name}:KeysAssignation`
 		);
+
+		this._keysAssignation = keysAssignation;
+
+		keysAssignation.assignKeys(PRUNE_BANNED_KEYS, OWNERSHIP);
 
 		// Creating default maps
 		this._humanizersMap = Object.create(null);
