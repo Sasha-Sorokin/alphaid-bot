@@ -362,7 +362,7 @@ async function initBot(log: logger.ILogFunction, config: IBotConfig, internalCon
 	try {
 		await snowball.prepareModLoader();
 	} catch (err) {
-		log("err", "[Run] Failed to initialize mod loader...");
+		log("err", "[Run] Failed to initialize mod loader...", err);
 
 		process.exit(1);
 	}
