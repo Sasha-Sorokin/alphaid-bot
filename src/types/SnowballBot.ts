@@ -187,7 +187,8 @@ export class BotInstance {
 		this.modLoader = new ModLoader.ModuleLoader({
 			modulesPath: "./cogs/",
 			name: `${this._config.name}:ModLoader`,
-			disabled: this._config.disableModules
+			disabled: this._config.disableModules,
+			nodeModulesPrefix: "alphaid-bot-"
 		});
 
 		// Public module loader
