@@ -74,7 +74,7 @@ async function discover(directories: string[]) {
 			LOG("err", `Discovery: Discovery of the routing within the directory "${directory}" failed`, err);
 		}
 
-		if (sucessfullDiscovery) LOG("info", `Discovery: Discovered empty directory: "${directory}"`);
+		if (!sucessfullDiscovery) LOG("info", `Discovery: Discovered empty directory: "${directory}"`);
 	}
 
 	return discovery;
