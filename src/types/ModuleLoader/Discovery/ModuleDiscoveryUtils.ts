@@ -1,9 +1,25 @@
 import * as getLogger from "loggy";
-import { promises as fs } from "fs";
+import { promises as fs, Stats } from "fs";
 import * as path from "path";
 import * as YAML from "js-yaml";
 
 const LOG = getLogger("ModuleDiscoveryUtils");
+
+export async function exists(fileName: string, additionalCheck?: (stat: Stats) => boolean) {
+	LOG("verbose", `Exists?: "${fileName}"`);
+
+	try {
+		const stat = await fs.stat(fileName);
+
+		return additionalCheck != null
+			? additionalCheck(stat)
+				? fileName
+				: undefined
+			: fileName;
+	} catch {
+		return undefined;
+	}
+}
 
 /**
  * List subdirectories in the provided directory
