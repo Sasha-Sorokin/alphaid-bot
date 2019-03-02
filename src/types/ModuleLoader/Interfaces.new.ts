@@ -47,11 +47,23 @@ export interface IModuleInfo {
 	 */
 	name: string;
 	/**
+	 * Whether package is node module or not
+	 * 
+	 * This property is defined automatically and must not be declared
+	 * manually (an warning in console will be printed if this happens,
+	 * and the variable is reset to the default value)
+	 */
+	nodeModule: boolean;
+	/**
 	 * Module version
+	 * 
+	 * Node modules can declare this via `version` in package.json
 	 */
 	version: string;
 	/**
 	 * Path to module
+	 * 
+	 * Node modules can declare this via `main` in package.json
 	 */
 	main: string;
 	/**
@@ -66,6 +78,14 @@ export interface IModuleInfo {
 	 * Optional dependencies version contain `?` at the end
 	 */
 	dependencies: INullableHashMap<string>;
+	/**
+	 * Whether only one instance of the module with this name allowed
+	 * 
+	 * Warning: this only applies to the modules that define the same statement
+	 * 
+	 * Defaults to `true`
+	 */
+	"no-alternatives": boolean;
 }
 
 /**
