@@ -1,0 +1,35 @@
+# project_identifier_env: CROWDIN_PROJECT_ID
+project_identifier: "snowball-bot"
+api_key_env: CROWDIN_API_KEY
+# base_path_env: CROWDIN_BASE_PATH
+preserve_hierarchy: true
+
+files:
+  - source: "/src/cogs/8ball/i18n/en-US.json"
+    translation: "/src/cogs/8ball/i18n/%locale%.json"
+    dest: "Magic Ball 8/general.json"
+    update_option: "update_as_unapproved"
+  - source: "/src/cogs/voice-role/i18n/en-US.yml"
+    translation: "/src/cogs/voice-role/i18n/%locale%.yml"
+    dest: "Voice Role/general.yml"
+    update_option: "update_as_unapproved"
+  - source: "/src/cogs/intl-preferences/i18n/en-US.yml"
+    translation: "/src/cogs/intl-preferences/i18n/%locale%.yml"
+    dest: "Intl Preferences/general.yml"
+    update_option: "update_as_unapproved"
+  - source: "/src/cogs/dnSERV/HouseRoles/i18n/en-US.yaml"
+    translation: "/src/cogs/dnSERV/HouseRoles/i18n/%locale%.yaml"
+    dest: "dnSERV/House Roles/house-roles.yaml"
+    update_option: "update_as_unapproved"
+  - source: "/src/cogs/dnSERV/StarsControl/i18n/en-US.yaml"
+    translation: "/src/cogs/dnSERV/StarsControl/i18n/%locale%.yaml"
+    dest: "dnSERV/Stars Control/stars-control.yaml"
+    update_option: "update_as_unapproved"
+  - source: "/src/cogs/dnSERV/StatsChannels/i18n/en-US.yaml"
+    translation: "/src/cogs/dnSERV/StatsChannels/i18n/%locale%.yaml"
+    dest: "dnSERV/Stats Channels/stats-channels.yaml"
+    update_option: "update_as_unapproved"
+  - source: "/src/languages/en-US.yaml"
+    translation: "/src/languages/%locale%.yaml"
+    dest: "/bot.yaml"
+    update_option: "update_as_unapproved"
