@@ -53,7 +53,7 @@ export interface IModuleInfo {
 	 * manually (an warning in console will be printed if this happens,
 	 * and the variable is reset to the default value)
 	 */
-	nodeModule: boolean;
+	node_module: boolean;
 	/**
 	 * Module version
 	 * 
@@ -85,7 +85,7 @@ export interface IModuleInfo {
 	 * 
 	 * Defaults to `true`
 	 */
-	"no-alternatives": boolean;
+	no_alternatives: boolean;
 }
 
 /**

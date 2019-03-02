@@ -181,7 +181,7 @@ export class ModuleLoader extends EventEmitter {
 		for (const name in discovered) {
 			let discovery = discovered[name]!;
 
-			const nonAlternative = discovery.filter(_ => _["no-alternatives"]);
+			const nonAlternative = discovery.filter(_ => _.no_alternatives);
 
 			if (nonAlternative.length > 1) {
 				let highest: Interfaces.IModuleInfo = nonAlternative[0];
@@ -189,14 +189,14 @@ export class ModuleLoader extends EventEmitter {
 				for (let i = 0, l = discovery.length; i < l; i++) {
 					const alternative = discovery[i];
 				
-					if (!alternative["no-alternatives"]) continue;
+					if (!alternative.no_alternatives) continue;
 
 					if (semver.lte(alternative.version, highest.version)) continue;
 
 					highest = alternative;
 				}
 
-				discovery = discovery.filter(_ => !_["no-alternatives"]);
+				discovery = discovery.filter(_ => !_.no_alternatives);
 
 				discovery.push(highest);
 			}
@@ -205,7 +205,7 @@ export class ModuleLoader extends EventEmitter {
 			logStr += "\n\t" + discovery.map(_ => {
 				let entry = `${_.name}@${_.version}`;
 
-				if (_["no-alternatives"]) entry += " *";
+				if (_.no_alternatives) entry += " *";
 
 				return entry;
 			}).join("\n\t");
@@ -221,31 +221,6 @@ export class ModuleLoader extends EventEmitter {
 
 		this._linkAll();
 	}
-
-	// /**
-	//  * Checks and updates module info
-	//  * @param original Module info to update
-	//  * @param updated Updated module info from discovery
-	//  * @throws Throws an error if the names are different, which is a sign of invalid function usage
-	//  */
-	// private _checkAndUpdate(original: Interfaces.IModuleInfo, updated: Interfaces.IModuleInfo) {
-	// 	if (original.name !== updated.name) {
-	// 		throw new Error("The names are different and cannot be updated, the new module must be introduced");
-	// 	}
-
-	// 	original.main = updated.main;
-	// 	original.version = updated.version;
-
-	// 	for (const name in original.dependencies) {
-	// 		if (!updated.dependencies[name]) {
-	// 			delete original.dependencies[name];
-	// 		}
-	// 	}
-
-	// 	for (const name in updated.dependencies) {
-	// 		original.dependencies[name] = updated.dependencies[name];
-	// 	}
-	// }
 
 	/**
 	 * Makes prototypes out of dependencies

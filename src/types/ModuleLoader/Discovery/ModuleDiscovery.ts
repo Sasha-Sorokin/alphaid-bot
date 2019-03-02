@@ -163,13 +163,13 @@ async function moduleInDirectory(directory: string) {
 			throw new Error(`Module name must be provided. File: ${declarationFile}`);
 		}
 
-		if (moduleInfo.nodeModule != null) {
+		if (moduleInfo.node_module != null) {
 			LOG("warn", `Module Search: Modules must not declare "nodeModule" property (in "${moduleInfo.name}")`);
 		}
 
-		moduleInfo.nodeModule = directory.startsWith(NODE_MODULES_PATH);
+		moduleInfo.node_module = directory.startsWith(NODE_MODULES_PATH);
 
-		if (moduleInfo.nodeModule) {
+		if (moduleInfo.node_module) {
 			const packageFile = await discoveryUtils.safeRead(path.join(directory, "package.json"));
 
 			if (packageFile == null) {
@@ -216,7 +216,7 @@ async function moduleInDirectory(directory: string) {
 		moduleInfo.main = normalizedPath;
 
 		// Check and set defaults:
-		if (moduleInfo["no-alternatives"] == null) moduleInfo["no-alternatives"] = true;
+		if (moduleInfo.no_alternatives == null) moduleInfo.no_alternatives = true;
 		if (moduleInfo.entrypoint == null) moduleInfo.entrypoint = "default";
 
 		return moduleInfo;
